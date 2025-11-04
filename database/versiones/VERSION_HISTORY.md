@@ -11,42 +11,42 @@ Este documento mantiene el registro de todas las versiones de la base de datos d
 **Tipo de Versión**: Inicial  
 
 ### Descripción
-Primera versión del esquema de base de datos para el sistema de apoyo alimentario escolar UTRM "Bocaditos". Incluye todas las estructuras básicas necesarias para la operación del sistema.
+Primera versión del esquema de base de datos para el sistema de donaciones alimentarias UTRM "Bocaditos". Adaptado desde el esquema MySQL/MariaDB original del cliente a PostgreSQL. Incluye todas las estructuras básicas necesarias para la operación del sistema de gestión de donaciones.
 
 ### Componentes Incluidos
 
 #### Tablas Principales
-1. **tutor** - Gestión de tutores/padres de familia
-2. **estudiante** - Información de estudiantes beneficiarios
-3. **bocadito** - Catálogo de alimentos disponibles
-4. **menu_diario** - Menús diarios del sistema
-5. **menu_bocadito** - Relación entre menús y bocaditos
-6. **responsable** - Personal de entrega
-7. **pedido** - Registro de pedidos
-8. **entrega** - Registro de entregas realizadas
+1. **donador** - Información de donadores (personas o instituciones)
+2. **donacion** - Registro de donaciones con cantidad y destino
+3. **escuela** - Instituciones educativas beneficiarias
+4. **administrador** - Personal que gestiona entregas en escuelas
+5. **alumno** - Estudiantes beneficiarios del programa
+6. **comida** - Catálogo de alimentos donados con fechas de caducidad
+7. **entrega** - Registro de entregas de donaciones
 
 #### Vistas
-1. **v_pedidos_estudiante** - Resumen de pedidos por estudiante
-2. **v_menu_del_dia** - Vista del menú actual con detalles
-3. **v_entregas_responsable** - Estadísticas de entregas por responsable
+1. **v_donaciones_completas** - Donaciones con información completa del donador
+2. **v_entregas_detalladas** - Detalles completos de entregas con administrador y escuela
+3. **v_alumnos_por_escuela** - Lista de alumnos organizados por escuela
+4. **v_comidas_proximas_caducar** - Alimentos que caducarán en los próximos 30 días
 
 #### Funciones y Triggers
-1. **actualizar_cantidad_disponible()** - Gestión automática de inventario
-2. **validar_entrega()** - Validación de entregas solo para pedidos confirmados
-3. **trg_actualizar_disponibilidad** - Trigger para actualizar disponibilidad
-4. **trg_validar_entrega** - Trigger de validación de entregas
+1. **validar_fecha_caducidad()** - Validación de fechas de caducidad
+2. **actualizar_estado_entrega()** - Registro de cambios de estado en entregas
+3. **trg_validar_fecha_caducidad** - Trigger para validar fechas antes de insertar/actualizar comidas
+4. **trg_actualizar_estado_entrega** - Trigger para registrar cambios de estado
 
 #### Índices Implementados
 - Índices en claves primarias (automáticos)
 - Índices en claves foráneas para optimizar JOINs
-- Índices en campos de búsqueda frecuente (fecha, estado, grado)
-- Índices compuestos para consultas complejas
+- Índices en campos de búsqueda frecuente (nombres, correos, fechas, estados)
+- Índices compuestos para consultas de búsqueda de alumnos
 
 #### Restricciones
 - Claves primarias en todas las tablas
-- Claves foráneas con integridad referencial
-- Constraints CHECK para validación de datos
-- Valores únicos donde corresponde (email, fecha de menú)
+- Claves foráneas con integridad referencial (ON DELETE RESTRICT, ON UPDATE RESTRICT)
+- Constraints CHECK para validación de datos (cantidades positivas, estados válidos)
+- Valores únicos donde corresponde (matrícula de alumnos)
 
 ### Archivos de la Versión
 - `/database/sql/ddl/01_create_schema.sql` - Definición completa del esquema
@@ -57,13 +57,21 @@ Primera versión del esquema de base de datos para el sistema de apoyo alimentar
 No aplica (versión inicial).
 
 ### Datos de Prueba
-- 8 tutores
-- 12 estudiantes
-- 15 bocaditos en diferentes categorías
-- 5 responsables de entrega
-- 5 menús diarios con bocaditos asociados
-- 10 pedidos de ejemplo
-- 1 entrega registrada
+- 5 donadores (fundaciones, comercios, asociaciones)
+- 5 donaciones registradas
+- 3 escuelas beneficiarias
+- 5 administradores
+- 12 alumnos en diferentes escuelas
+- 15 alimentos con fechas de caducidad
+- 5 entregas (completadas, en proceso, pendientes)
+
+### Origen del Esquema
+- **Esquema Original**: MySQL/MariaDB (proporcionado por el cliente)
+- **Adaptación**: PostgreSQL 14+ con mejoras en:
+  - Validación automática de fechas de caducidad
+  - Registro de cambios de estado en entregas
+  - Vistas optimizadas para reportes
+  - Mejoras en integridad referencial
 
 ### Requisitos del Sistema
 - PostgreSQL 14 o superior

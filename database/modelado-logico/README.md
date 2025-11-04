@@ -1,98 +1,157 @@
 # Modelado Lógico de Base de Datos - Sistema Bocaditos
 
 ## Descripción General
-Este documento describe el modelo lógico de la base de datos para el sistema de apoyo alimentario escolar en UTRM.
+Este documento describe el modelo lógico de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM, basado en el esquema MySQL/MariaDB existente.
 
 ## Entidades Principales
 
-### 1. Estudiante
-- **ID_Estudiante** (PK): Identificador único del estudiante
-- Nombre: Nombre completo del estudiante
-- Apellido: Apellido del estudiante
-- Fecha_Nacimiento: Fecha de nacimiento
-- Grado: Grado académico actual
-- ID_Tutor: Relación con el tutor (FK)
+### 1. Donador
+- **id_donador** (PK): Identificador único del donador
+- nombre: Nombre completo del donador o institución
+- correo: Correo electrónico de contacto
+- celular: Número de teléfono celular
+- direccion: Dirección física del donador
 
-### 2. Tutor
-- **ID_Tutor** (PK): Identificador único del tutor
-- Nombre: Nombre completo del tutor
-- Apellido: Apellido del tutor
-- Telefono: Número de contacto
-- Email: Correo electrónico
-- Direccion: Dirección de residencia
+### 2. Donacion
+- **id_donacion** (PK): Identificador único de la donación
+- cantidad: Cantidad de alimentos donados
+- destino: Destino de la donación
+- fecha_donacion: Fecha en que se realizó la donación
+- id_donador (FK): Referencia al donador
 
-### 3. Bocadito
-- **ID_Bocadito** (PK): Identificador único del bocadito
-- Nombre: Nombre del bocadito
-- Descripcion: Descripción detallada
-- Categoria: Categoría del alimento
-- Calorias: Contenido calórico
-- Precio: Precio unitario
+### 3. Escuela
+- **id_escuela** (PK): Identificador único de la escuela
+- nombre: Nombre de la institución educativa
+- ubicacion: Dirección física de la escuela
+- id_donacion (FK): Referencia a la donación recibida
 
-### 4. Menu_Diario
-- **ID_Menu** (PK): Identificador único del menú
-- Fecha: Fecha del menú
-- Descripcion: Descripción del menú del día
+### 4. Administrador
+- **id_admi** (PK): Identificador único del administrador
+- nombre: Nombre completo del administrador
+- numero: Número de teléfono
+- correo: Correo electrónico
+- id_escuela (FK): Referencia a la escuela donde trabaja
 
-### 5. Menu_Bocadito
-- **ID_Menu** (FK): Referencia al menú
-- **ID_Bocadito** (FK): Referencia al bocadito
-- Cantidad_Disponible: Cantidad disponible para ese día
+### 5. Alumno
+- **id_alumno** (PK): Identificador único del alumno
+- nombre: Nombre del alumno
+- apellido: Apellido del alumno
+- grupo: Grupo al que pertenece
+- cuatrimestre: Cuatrimestre actual
+- matricula: Matrícula única del alumno
+- id_escuela: Referencia a la escuela (sin FK definida)
 
-### 6. Pedido
-- **ID_Pedido** (PK): Identificador único del pedido
-- ID_Estudiante (FK): Referencia al estudiante
-- ID_Menu (FK): Referencia al menú
-- Fecha_Pedido: Fecha y hora del pedido
-- Estado: Estado del pedido (pendiente, entregado, cancelado)
+### 6. Comida
+- **id_comida** (PK): Identificador único del alimento
+- nombre: Nombre del producto alimenticio
+- tipo_comida: Tipo o categoría del alimento
+- fecha_caducidad: Fecha de caducidad del producto
+- id_donacion: Referencia a la donación (sin FK definida)
 
 ### 7. Entrega
-- **ID_Entrega** (PK): Identificador único de la entrega
-- ID_Pedido (FK): Referencia al pedido
-- Fecha_Entrega: Fecha y hora de entrega
-- ID_Responsable (FK): Responsable de la entrega
-
-### 8. Responsable
-- **ID_Responsable** (PK): Identificador único del responsable
-- Nombre: Nombre del responsable
-- Apellido: Apellido del responsable
-- Cargo: Cargo o función
-- Telefono: Número de contacto
+- **id_entrega** (PK): Identificador único de la entrega
+- estado: Estado actual de la entrega
+- fecha_entrega: Fecha programada o realizada de entrega
+- id_admin (FK): Referencia al administrador responsable
+- id_donacion (FK): Referencia a la donación entregada
 
 ## Relaciones
 
-1. **Estudiante - Tutor**: Relación 1:N (Un tutor puede tener varios estudiantes)
-2. **Menu_Diario - Bocadito**: Relación N:M a través de Menu_Bocadito
-3. **Estudiante - Pedido**: Relación 1:N (Un estudiante puede hacer varios pedidos)
-4. **Menu_Diario - Pedido**: Relación 1:N (Un menú puede tener varios pedidos)
-5. **Pedido - Entrega**: Relación 1:1 (Un pedido tiene una entrega)
-6. **Responsable - Entrega**: Relación 1:N (Un responsable puede hacer varias entregas)
+1. **Donador - Donacion**: Relación 1:N (Un donador puede realizar múltiples donaciones)
+2. **Donacion - Escuela**: Relación 1:N (Una donación puede ir a múltiples escuelas)
+3. **Escuela - Administrador**: Relación 1:N (Una escuela tiene varios administradores)
+4. **Administrador - Entrega**: Relación 1:N (Un administrador gestiona varias entregas)
+5. **Donacion - Entrega**: Relación 1:N (Una donación puede tener múltiples entregas)
+6. **Donacion - Comida**: Relación 1:N (Una donación contiene múltiples alimentos)
+7. **Escuela - Alumno**: Relación 1:N (Una escuela tiene múltiples alumnos)
 
 ## Reglas de Negocio
 
-1. Cada estudiante debe tener un tutor asignado
-2. Los pedidos deben realizarse para menús del día o días futuros
-3. Un pedido no puede ser entregado sin estar en estado "confirmado"
-4. La cantidad disponible de bocaditos debe actualizarse con cada pedido
-5. Un estudiante solo puede hacer un pedido por día
+1. Cada donación debe estar asociada a un donador
+2. Las escuelas reciben donaciones de alimentos
+3. Los administradores gestionan las entregas en sus escuelas
+4. Las entregas tienen estados: pendiente, en_proceso, completada, cancelada
+5. Los alimentos tienen fecha de caducidad que debe ser monitoreada
+6. Cada alumno tiene una matrícula única
+7. Los alumnos están organizados por grupos y cuatrimestres
 
 ## Diagrama Entidad-Relación
 
 ```
-[Tutor] 1----N [Estudiante] 1----N [Pedido] N----1 [Menu_Diario]
-                                      |                    |
-                                      1                    N
-                                      |                    |
-                                  [Entrega]           [Menu_Bocadito]
-                                      |                    |
-                                      N                    N
-                                      |                    |
-                                [Responsable]          [Bocadito]
+[Donador] 1----N [Donacion] 1----N [Escuela]
+                     |                  |
+                     |                  |
+                     |                  1
+                     |                  |
+                     |             [Administrador]
+                     |                  |
+                     |                  |
+                     |                  1
+                     |                  |
+                     N                  N
+                     |                  |
+                [Entrega]----------[Entrega]
+                
+[Donacion] 1----N [Comida]
+
+[Escuela] 1----N [Alumno]
 ```
 
 ## Normalización
 
-El modelo se encuentra en Tercera Forma Normal (3FN):
-- Todos los atributos no clave dependen completamente de la clave primaria
-- No existen dependencias transitivas
-- Todas las relaciones many-to-many se resuelven mediante tablas de unión
+El modelo se encuentra parcialmente normalizado:
+- **Primera Forma Normal (1FN)**: ✓ Todos los atributos contienen valores atómicos
+- **Segunda Forma Normal (2FN)**: ✓ Todos los atributos no clave dependen de la clave primaria completa
+- **Tercera Forma Normal (3FN)**: ⚠️ Puede haber dependencias transitivas que requieren revisión
+
+### Observaciones de Normalización
+
+1. La relación entre `escuela` y `donacion` puede crear dependencias circulares
+2. Considerar si `id_donacion` en `escuela` debe ser una relación separada
+3. Las tablas `alumno` y `comida` no tienen claves foráneas explícitas definidas
+
+## Mejoras Sugeridas
+
+### 1. Integridad Referencial
+- Agregar FK de `alumno.id_escuela` → `escuela.id_escuela`
+- Agregar FK de `comida.id_donacion` → `donacion.id_donacion`
+
+### 2. Relación Escuela-Donación
+- Considerar crear una tabla intermedia `escuela_donacion` para manejar la relación N:M
+- Esto permitiría que una escuela reciba múltiples donaciones y una donación beneficie a múltiples escuelas
+
+### 3. Campos Adicionales Recomendados
+- Timestamps de auditoría (created_at, updated_at)
+- Campos de estado activo/inactivo
+- Campos de notas o comentarios en entregas
+
+### 4. Restricciones
+- Valores únicos donde corresponda (correos, matrículas)
+- Validaciones de fechas (fecha_caducidad >= fecha_donacion)
+- Estados permitidos para entregas
+
+## Tipos de Datos Sugeridos (PostgreSQL)
+
+| Campo | Tipo MySQL | Tipo PostgreSQL Sugerido |
+|-------|-----------|-------------------------|
+| id_* | INT | INTEGER o SERIAL |
+| nombre | VARCHAR(60) | VARCHAR(60) |
+| correo | VARCHAR(150) | VARCHAR(150) |
+| celular/numero | VARCHAR(10) | VARCHAR(10) |
+| direccion/ubicacion | VARCHAR(255) | VARCHAR(255) |
+| tipo_comida | VARCHAR(50) | VARCHAR(50) |
+| estado | VARCHAR(20) | VARCHAR(20) con CHECK constraint |
+| fecha_* | DATE | DATE |
+| grupo | VARCHAR(10) | VARCHAR(10) |
+| cuatrimestre | VARCHAR(10) | VARCHAR(10) |
+| matricula | VARCHAR(7) | VARCHAR(7) UNIQUE |
+| cantidad | INT | INTEGER |
+
+## Consideraciones de Migración MySQL → PostgreSQL
+
+1. **AUTO_INCREMENT** → **SERIAL** o **IDENTITY**
+2. **ENGINE = InnoDB** → No aplicable en PostgreSQL
+3. **CHARACTER SET** → Definir en nivel de base de datos
+4. **COLLATE** → Usar collations de PostgreSQL
+5. **FOREIGN_KEY_CHECKS** → No necesario en PostgreSQL
+6. Índices se crean explícitamente después de las tablas

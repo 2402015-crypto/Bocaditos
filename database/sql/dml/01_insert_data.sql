@@ -1,6 +1,6 @@
 -- ============================================
 -- Script de Datos Iniciales
--- Sistema: Bocaditos - Apoyo Alimentario Escolar UTRM
+-- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
 -- Versión: 1.0.0
 -- Fecha: 2025-11-04
 -- Descripción: Inserta datos de prueba en el sistema
@@ -10,156 +10,106 @@
 \c bocaditos_db;
 
 -- ============================================
--- TUTORES
+-- DONADORES
 -- ============================================
-INSERT INTO tutor (nombre, apellido, telefono, email, direccion) VALUES
-('María', 'González', '0991234567', 'maria.gonzalez@email.com', 'Av. Principal 123, Quito'),
-('Carlos', 'Ramírez', '0992345678', 'carlos.ramirez@email.com', 'Calle Secundaria 456, Quito'),
-('Ana', 'Pérez', '0993456789', 'ana.perez@email.com', 'Barrio Norte 789, Quito'),
-('José', 'Martínez', '0994567890', 'jose.martinez@email.com', 'Sector Sur 321, Quito'),
-('Laura', 'Sánchez', '0995678901', 'laura.sanchez@email.com', 'Zona Centro 654, Quito'),
-('Pedro', 'López', '0996789012', 'pedro.lopez@email.com', 'Urbanización Este 987, Quito'),
-('Carmen', 'Torres', '0997890123', 'carmen.torres@email.com', 'Conjunto Oeste 147, Quito'),
-('Miguel', 'Flores', '0998901234', 'miguel.flores@email.com', 'Villa Nueva 258, Quito');
+INSERT INTO donador (id_donador, nombre, correo, celular, direccion) VALUES
+(1, 'Fundación Alimentos Para Todos', 'contacto@alimentosparatodos.org', '5551234567', 'Av. Reforma 123, Ciudad de México'),
+(2, 'Banco de Alimentos Regional', 'info@bancoalimentos.mx', '5552345678', 'Calle Juárez 456, Guadalajara'),
+(3, 'Comercial La Despensa S.A.', 'donaciones@ladespensa.com.mx', '5553456789', 'Blvd. Insurgentes 789, Monterrey'),
+(4, 'Supermercados Unidos', 'responsabilidad@superunidos.mx', '5554567890', 'Av. Universidad 321, Puebla'),
+(5, 'Asociación de Productores Locales', 'contacto@productoreslocales.org', '5555678901', 'Carretera Nacional Km 15, Querétaro');
 
 -- ============================================
--- ESTUDIANTES
+-- DONACIONES
 -- ============================================
-INSERT INTO estudiante (nombre, apellido, fecha_nacimiento, grado, id_tutor) VALUES
-('Juan', 'González', '2014-03-15', '4to', 1),
-('María', 'González', '2016-07-22', '2do', 1),
-('Carlos', 'Ramírez', '2013-11-08', '5to', 2),
-('Ana', 'Ramírez', '2015-05-30', '3ro', 2),
-('Luis', 'Pérez', '2014-09-12', '4to', 3),
-('Sofia', 'Martínez', '2015-01-25', '3ro', 4),
-('Diego', 'Martínez', '2017-06-18', '1ro', 4),
-('Valentina', 'Sánchez', '2013-04-07', '6to', 5),
-('Andrés', 'López', '2014-12-03', '4to', 6),
-('Isabella', 'Torres', '2016-08-20', '2do', 7),
-('Mateo', 'Flores', '2015-10-15', '3ro', 8),
-('Camila', 'Flores', '2014-02-28', '5to', 8);
+INSERT INTO donacion (id_donacion, cantidad, destino, fecha_donacion, id_donador) VALUES
+(1, 500, 'Escuela Primaria Benito Juárez', '2025-10-15', 1),
+(2, 300, 'Escuela Secundaria Técnica 25', '2025-10-20', 2),
+(3, 750, 'Universidad Técnica Regional Metropolitana', '2025-10-25', 3),
+(4, 400, 'Escuela Primaria Miguel Hidalgo', '2025-11-01', 4),
+(5, 600, 'Universidad Técnica Regional Metropolitana', '2025-11-03', 5);
 
 -- ============================================
--- BOCADITOS
+-- ESCUELAS
 -- ============================================
-INSERT INTO bocadito (nombre, descripcion, categoria, calorias, precio) VALUES
-('Jugo de Naranja Natural', 'Jugo natural de naranja recién exprimido', 'bebida', 120, 1.50),
-('Agua Mineral', 'Agua mineral sin gas', 'bebida', 0, 0.75),
-('Batido de Fresa', 'Batido de fresa con leche', 'bebida', 200, 2.00),
-('Sandwich de Jamón y Queso', 'Pan integral con jamón de pavo y queso', 'sandwich', 350, 2.50),
-('Sandwich Vegetariano', 'Pan con vegetales frescos y queso crema', 'sandwich', 280, 2.25),
-('Manzana Roja', 'Manzana fresca de temporada', 'fruta', 95, 0.50),
-('Plátano', 'Plátano maduro', 'fruta', 105, 0.40),
-('Naranja', 'Naranja fresca', 'fruta', 62, 0.45),
-('Yogurt con Granola', 'Yogurt natural con granola y miel', 'snack', 180, 1.75),
-('Barrita de Cereal', 'Barrita energética de cereal', 'snack', 150, 1.25),
-('Galletas Integrales', 'Paquete de galletas integrales', 'snack', 130, 1.00),
-('Gelatina de Frutas', 'Gelatina con trozos de frutas', 'postre', 85, 1.00),
-('Ensalada de Frutas', 'Mix de frutas frescas de temporada', 'postre', 120, 1.50),
-('Arroz con Pollo', 'Porción de arroz con pollo y ensalada', 'plato_principal', 450, 3.50),
-('Pasta con Vegetales', 'Pasta integral con vegetales al vapor', 'plato_principal', 380, 3.00);
+INSERT INTO escuela (id_escuela, nombre, ubicacion, id_donacion) VALUES
+(1, 'Escuela Primaria Benito Juárez', 'Calle Morelos 45, Col. Centro', 1),
+(2, 'Escuela Secundaria Técnica 25', 'Av. Tecnológico 890, Col. Industrial', 2),
+(3, 'Universidad Técnica Regional Metropolitana', 'Blvd. Universitario 1500, Campus Norte', 3);
 
 -- ============================================
--- RESPONSABLES
+-- ADMINISTRADORES
 -- ============================================
-INSERT INTO responsable (nombre, apellido, cargo, telefono) VALUES
-('Roberto', 'Vásquez', 'coordinador', '0999012345'),
-('Patricia', 'Morales', 'asistente', '0990123456'),
-('Fernando', 'Castro', 'asistente', '0991234560'),
-('Gabriela', 'Ruiz', 'voluntario', '0992345601'),
-('Ricardo', 'Herrera', 'supervisor', '0993456012');
+INSERT INTO administrador (id_admi, nombre, numero, correo, id_escuela) VALUES
+(1, 'María López Hernández', '5556789012', 'maria.lopez@primaria-juarez.edu.mx', 1),
+(2, 'Carlos Ramírez García', '5557890123', 'carlos.ramirez@secundaria25.edu.mx', 2),
+(3, 'Ana Martínez Sánchez', '5558901234', 'ana.martinez@utrm.edu.mx', 3),
+(4, 'José González Torres', '5559012345', 'jose.gonzalez@primaria-juarez.edu.mx', 1),
+(5, 'Laura Pérez Domínguez', '5550123456', 'laura.perez@utrm.edu.mx', 3);
 
 -- ============================================
--- MENÚS DIARIOS
+-- ALUMNOS
 -- ============================================
-INSERT INTO menu_diario (fecha, descripcion) VALUES
-(CURRENT_DATE, 'Menú nutritivo del día con opciones variadas'),
-(CURRENT_DATE + INTERVAL '1 day', 'Menú especial con frutas de temporada'),
-(CURRENT_DATE + INTERVAL '2 days', 'Menú balanceado con proteínas'),
-(CURRENT_DATE + INTERVAL '3 days', 'Menú vegetariano del día'),
-(CURRENT_DATE + INTERVAL '4 days', 'Menú completo con plato principal');
-
--- ============================================
--- MENÚ-BOCADITO (Asociaciones)
--- ============================================
--- Menú del día actual
-INSERT INTO menu_bocadito (id_menu, id_bocadito, cantidad_disponible) VALUES
-(1, 1, 50),  -- Jugo de Naranja
-(1, 4, 40),  -- Sandwich de Jamón
-(1, 6, 60),  -- Manzana
-(1, 9, 30),  -- Yogurt con Granola
-(1, 12, 35); -- Gelatina
-
--- Menú día +1
-INSERT INTO menu_bocadito (id_menu, id_bocadito, cantidad_disponible) VALUES
-(2, 2, 50),  -- Agua
-(2, 5, 40),  -- Sandwich Vegetariano
-(2, 7, 60),  -- Plátano
-(2, 8, 60),  -- Naranja
-(2, 13, 35); -- Ensalada de Frutas
-
--- Menú día +2
-INSERT INTO menu_bocadito (id_menu, id_bocadito, cantidad_disponible) VALUES
-(3, 3, 45),  -- Batido de Fresa
-(3, 4, 50),  -- Sandwich de Jamón
-(3, 10, 40), -- Barrita de Cereal
-(3, 14, 30); -- Arroz con Pollo
-
--- Menú día +3 (Vegetariano)
-INSERT INTO menu_bocadito (id_menu, id_bocadito, cantidad_disponible) VALUES
-(4, 1, 50),  -- Jugo de Naranja
-(4, 5, 45),  -- Sandwich Vegetariano
-(4, 6, 50),  -- Manzana
-(4, 11, 40), -- Galletas Integrales
-(4, 15, 35); -- Pasta con Vegetales
-
--- Menú día +4
-INSERT INTO menu_bocadito (id_menu, id_bocadito, cantidad_disponible) VALUES
-(5, 2, 50),  -- Agua
-(5, 4, 45),  -- Sandwich de Jamón
-(5, 7, 55),  -- Plátano
-(5, 9, 35),  -- Yogurt
-(5, 14, 30); -- Arroz con Pollo
+INSERT INTO alumno (id_alumno, nombre, apellido, grupo, cuatrimestre, matricula, id_escuela) VALUES
+(1, 'Juan', 'Pérez López', 'A', '1ro', '2025001', 1),
+(2, 'María', 'García Martínez', 'A', '1ro', '2025002', 1),
+(3, 'Carlos', 'Rodríguez Sánchez', 'B', '2do', '2025003', 1),
+(4, 'Ana', 'Hernández Flores', 'B', '2do', '2025004', 1),
+(5, 'Luis', 'Martínez Ramírez', 'A', '1ro', '2024001', 2),
+(6, 'Sofia', 'López García', 'B', '2do', '2024002', 2),
+(7, 'Diego', 'Sánchez Torres', 'C', '3ro', '2024003', 2),
+(8, 'Valentina', 'Torres Díaz', 'A', '1ro', '2023001', 3),
+(9, 'Andrés', 'Díaz Morales', 'B', '2do', '2023002', 3),
+(10, 'Isabella', 'Morales Castro', 'A', '3ro', '2023003', 3),
+(11, 'Mateo', 'Castro Ruiz', 'C', '4to', '2023004', 3),
+(12, 'Camila', 'Ruiz Herrera', 'B', '5to', '2023005', 3);
 
 -- ============================================
--- PEDIDOS DE PRUEBA
+-- COMIDAS
 -- ============================================
-INSERT INTO pedido (id_estudiante, id_menu, estado, notas) VALUES
-(1, 1, 'confirmado', 'Sin cebolla en el sandwich'),
-(2, 1, 'confirmado', 'Alergia a frutos secos'),
-(3, 1, 'confirmado', NULL),
-(4, 2, 'pendiente', NULL),
-(5, 2, 'pendiente', NULL),
-(6, 1, 'confirmado', NULL),
-(7, 2, 'pendiente', 'Primera vez que pide'),
-(8, 1, 'entregado', NULL),
-(9, 3, 'pendiente', NULL),
-(10, 1, 'cancelado', 'Estudiante ausente');
+INSERT INTO comida (id_comida, nombre, tipo_comida, fecha_caducidad, id_donacion) VALUES
+(1, 'Arroz Integral 1kg', 'Granos', '2026-03-15', 1),
+(2, 'Frijoles Negros 1kg', 'Legumbres', '2026-03-15', 1),
+(3, 'Aceite Vegetal 1L', 'Aceites', '2025-12-31', 1),
+(4, 'Leche en Polvo 500g', 'Lácteos', '2026-02-28', 2),
+(5, 'Avena en Hojuelas 500g', 'Cereales', '2026-01-31', 2),
+(6, 'Atún en Lata 170g', 'Conservas', '2026-06-30', 3),
+(7, 'Sardinas en Lata 125g', 'Conservas', '2026-06-30', 3),
+(8, 'Pasta Integral 500g', 'Pastas', '2026-04-30', 3),
+(9, 'Salsa de Tomate 500ml', 'Salsas', '2025-12-15', 4),
+(10, 'Galletas Integrales 200g', 'Snacks', '2025-12-01', 4),
+(11, 'Jugos de Fruta 1L', 'Bebidas', '2025-11-30', 5),
+(12, 'Manzanas Frescas', 'Frutas', '2025-11-15', 5),
+(13, 'Plátanos', 'Frutas', '2025-11-12', 5),
+(14, 'Naranjas', 'Frutas', '2025-11-20', 5),
+(15, 'Yogurt Natural 1L', 'Lácteos', '2025-11-25', 2);
 
 -- ============================================
 -- ENTREGAS
 -- ============================================
-INSERT INTO entrega (id_pedido, fecha_entrega, id_responsable, observaciones) VALUES
-(8, CURRENT_TIMESTAMP - INTERVAL '2 hours', 1, 'Entrega sin problemas');
+INSERT INTO entrega (id_entrega, estado, fecha_entrega, id_admin, id_donacion) VALUES
+(1, 'completada', '2025-10-16', 1, 1),
+(2, 'completada', '2025-10-22', 2, 2),
+(3, 'en_proceso', '2025-10-26', 3, 3),
+(4, 'pendiente', '2025-11-02', 4, 4),
+(5, 'pendiente', '2025-11-04', 5, 5);
 
 -- ============================================
 -- VERIFICACIÓN DE DATOS
 -- ============================================
 
 -- Mostrar resumen de datos insertados
-SELECT 'Tutores insertados:' AS tipo, COUNT(*) AS cantidad FROM tutor
+SELECT 'Donadores insertados:' AS tipo, COUNT(*) AS cantidad FROM donador
 UNION ALL
-SELECT 'Estudiantes insertados:', COUNT(*) FROM estudiante
+SELECT 'Donaciones registradas:', COUNT(*) FROM donacion
 UNION ALL
-SELECT 'Bocaditos insertados:', COUNT(*) FROM bocadito
+SELECT 'Escuelas registradas:', COUNT(*) FROM escuela
 UNION ALL
-SELECT 'Responsables insertados:', COUNT(*) FROM responsable
+SELECT 'Administradores insertados:', COUNT(*) FROM administrador
 UNION ALL
-SELECT 'Menús creados:', COUNT(*) FROM menu_diario
+SELECT 'Alumnos insertados:', COUNT(*) FROM alumno
 UNION ALL
-SELECT 'Asociaciones menú-bocadito:', COUNT(*) FROM menu_bocadito
-UNION ALL
-SELECT 'Pedidos creados:', COUNT(*) FROM pedido
+SELECT 'Alimentos registrados:', COUNT(*) FROM comida
 UNION ALL
 SELECT 'Entregas registradas:', COUNT(*) FROM entrega;
 

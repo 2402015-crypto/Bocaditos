@@ -1,14 +1,15 @@
 # Bocaditos
-Repositorio académico para el modelado y gestión de base de datos del sistema de apoyo alimentario escolar en UTRM.
+Repositorio académico para el modelado y gestión de base de datos del sistema de donaciones alimentarias en UTRM.
 
 ## 📋 Descripción del Proyecto
 
-**Bocaditos** es un sistema de gestión para el programa de apoyo alimentario escolar que permite:
-- Gestionar menús diarios de alimentos
-- Registrar pedidos de estudiantes
-- Controlar entregas de bocaditos
-- Administrar información de estudiantes y tutores
-- Generar reportes y estadísticas del programa
+**Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias que permite:
+- Registrar donadores y sus donaciones
+- Gestionar entregas a escuelas beneficiarias
+- Administrar información de escuelas y sus administradores
+- Controlar inventario de alimentos con fechas de caducidad
+- Registrar alumnos beneficiarios
+- Generar reportes y estadísticas del programa de donaciones
 
 ## 🗂️ Estructura del Repositorio
 
@@ -47,8 +48,8 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 ### ✅ Archivos SQL
 - **DDL**: Scripts de creación del esquema
-  - Tablas (8 entidades principales)
-  - Vistas (3 vistas)
+  - Tablas (7 entidades principales)
+  - Vistas (4 vistas)
   - Triggers y funciones (2 triggers, 2 funciones)
   - Índices y constraints
 - **DML**: Scripts de datos
@@ -98,13 +99,13 @@ psql -U postgres -d bocaditos_db -c "\dt"
 
 El sistema gestiona las siguientes entidades principales:
 
-- **Tutor**: Información de padres/tutores
-- **Estudiante**: Datos de beneficiarios del programa
-- **Bocadito**: Catálogo de alimentos disponibles
-- **Menú Diario**: Menús por fecha
-- **Pedido**: Solicitudes de estudiantes
-- **Entrega**: Registro de entregas realizadas
-- **Responsable**: Personal de entrega
+- **Donador**: Personas o instituciones donantes
+- **Donación**: Registro de donaciones
+- **Escuela**: Instituciones educativas beneficiarias
+- **Administrador**: Personal que gestiona entregas
+- **Alumno**: Estudiantes beneficiarios
+- **Comida**: Catálogo de alimentos donados
+- **Entrega**: Registro de entregas a escuelas
 
 ## 📖 Documentación Completa
 
@@ -123,14 +124,15 @@ Para información detallada sobre la base de datos, consulta:
 
 ## 📝 Características Destacadas
 
-- ✅ Diseño normalizado (3FN)
+- ✅ Adaptado desde MySQL/MariaDB a PostgreSQL
 - ✅ Integridad referencial completa
-- ✅ Triggers automáticos para gestión de inventario
+- ✅ Triggers automáticos para validaciones
 - ✅ Vistas optimizadas para reportes
 - ✅ Índices en campos críticos
 - ✅ Consultas predefinidas para análisis
 - ✅ Control de versiones documentado
 - ✅ Datos de prueba incluidos
+- ✅ Gestión de fechas de caducidad de alimentos
 
 ## 🤝 Contribución
 

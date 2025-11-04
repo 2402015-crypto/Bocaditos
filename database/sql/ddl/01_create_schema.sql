@@ -1,9 +1,10 @@
 -- ============================================
 -- Script de Creación de Base de Datos
--- Sistema: Bocaditos - Apoyo Alimentario Escolar UTRM
+-- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
 -- Versión: 1.0.0
 -- Fecha: 2025-11-04
 -- Motor: PostgreSQL 14+
+-- Adaptado de: MySQL/MariaDB Schema Original
 -- ============================================
 
 -- Crear base de datos
@@ -21,307 +22,270 @@ CREATE DATABASE bocaditos_db
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
--- TABLA: tutor
--- Descripción: Almacena información de tutores/padres
+-- TABLA: donador
+-- Descripción: Almacena información de donadores
 -- ============================================
-CREATE TABLE tutor (
-    id_tutor SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    direccion TEXT,
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE
+CREATE TABLE donador (
+    id_donador INTEGER PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL,
+    correo VARCHAR(150) NOT NULL,
+    celular VARCHAR(10) NOT NULL,
+    direccion VARCHAR(255) NOT NULL
 );
 
--- Índices para tutor
-CREATE INDEX idx_tutor_nombre ON tutor(nombre, apellido);
-CREATE INDEX idx_tutor_email ON tutor(email);
+-- Índices para donador
+CREATE INDEX idx_donador_nombre ON donador(nombre);
+CREATE INDEX idx_donador_correo ON donador(correo);
 
 -- Comentarios
-COMMENT ON TABLE tutor IS 'Tabla de tutores o padres de familia';
-COMMENT ON COLUMN tutor.id_tutor IS 'Identificador único del tutor';
-COMMENT ON COLUMN tutor.email IS 'Correo electrónico único del tutor';
+COMMENT ON TABLE donador IS 'Tabla de donadores del sistema';
+COMMENT ON COLUMN donador.id_donador IS 'Identificador único del donador';
+COMMENT ON COLUMN donador.correo IS 'Correo electrónico del donador';
 
 -- ============================================
--- TABLA: estudiante
--- Descripción: Almacena información de estudiantes
+-- TABLA: donacion
+-- Descripción: Almacena información de donaciones
 -- ============================================
-CREATE TABLE estudiante (
-    id_estudiante SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    fecha_nacimiento DATE NOT NULL,
-    grado VARCHAR(20) NOT NULL,
-    id_tutor INTEGER NOT NULL,
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_estudiante_tutor FOREIGN KEY (id_tutor) 
-        REFERENCES tutor(id_tutor) ON DELETE RESTRICT,
-    CONSTRAINT chk_fecha_nacimiento CHECK (fecha_nacimiento < CURRENT_DATE),
-    CONSTRAINT chk_grado CHECK (grado IN ('1ro', '2do', '3ro', '4to', '5to', '6to', '7mo', '8vo', '9no', '10mo'))
+CREATE TABLE donacion (
+    id_donacion INTEGER PRIMARY KEY,
+    cantidad INTEGER NOT NULL,
+    destino VARCHAR(255) NOT NULL,
+    fecha_donacion DATE NOT NULL,
+    id_donador INTEGER NOT NULL,
+    CONSTRAINT fk_donacion_donador FOREIGN KEY (id_donador) 
+        REFERENCES donador(id_donador) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_cantidad CHECK (cantidad > 0)
 );
 
--- Índices para estudiante
-CREATE INDEX idx_estudiante_tutor ON estudiante(id_tutor);
-CREATE INDEX idx_estudiante_grado ON estudiante(grado);
-CREATE INDEX idx_estudiante_nombre ON estudiante(nombre, apellido);
+-- Índices para donacion
+CREATE INDEX idx_donacion_donador ON donacion(id_donador);
+CREATE INDEX idx_donacion_fecha ON donacion(fecha_donacion);
 
 -- Comentarios
-COMMENT ON TABLE estudiante IS 'Tabla de estudiantes del sistema';
-COMMENT ON COLUMN estudiante.grado IS 'Grado académico del estudiante';
+COMMENT ON TABLE donacion IS 'Tabla de donaciones realizadas';
+COMMENT ON COLUMN donacion.cantidad IS 'Cantidad de alimentos donados';
+COMMENT ON COLUMN donacion.destino IS 'Destino de la donación';
 
 -- ============================================
--- TABLA: bocadito
--- Descripción: Catálogo de alimentos disponibles
+-- TABLA: escuela
+-- Descripción: Almacena información de escuelas
 -- ============================================
-CREATE TABLE bocadito (
-    id_bocadito SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT,
-    categoria VARCHAR(50) NOT NULL,
-    calorias INTEGER,
-    precio DECIMAL(10,2) NOT NULL,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
-    CONSTRAINT chk_calorias CHECK (calorias >= 0),
-    CONSTRAINT chk_precio CHECK (precio > 0),
-    CONSTRAINT chk_categoria CHECK (categoria IN ('bebida', 'sandwich', 'fruta', 'snack', 'postre', 'plato_principal'))
+CREATE TABLE escuela (
+    id_escuela INTEGER PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL,
+    ubicacion VARCHAR(255) NOT NULL,
+    id_donacion INTEGER NOT NULL,
+    CONSTRAINT fk_escuela_donacion FOREIGN KEY (id_donacion) 
+        REFERENCES donacion(id_donacion) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
--- Índices para bocadito
-CREATE INDEX idx_bocadito_categoria ON bocadito(categoria);
-CREATE INDEX idx_bocadito_nombre ON bocadito(nombre);
-CREATE INDEX idx_bocadito_activo ON bocadito(activo);
+-- Índices para escuela
+CREATE INDEX idx_escuela_nombre ON escuela(nombre);
+CREATE INDEX idx_escuela_donacion ON escuela(id_donacion);
 
 -- Comentarios
-COMMENT ON TABLE bocadito IS 'Catálogo de alimentos y bocaditos disponibles';
-COMMENT ON COLUMN bocadito.categoria IS 'Categoría del alimento';
-COMMENT ON COLUMN bocadito.calorias IS 'Contenido calórico aproximado';
+COMMENT ON TABLE escuela IS 'Tabla de escuelas beneficiarias';
+COMMENT ON COLUMN escuela.ubicacion IS 'Ubicación física de la escuela';
 
 -- ============================================
--- TABLA: menu_diario
--- Descripción: Menús diarios disponibles
+-- TABLA: administrador
+-- Descripción: Almacena información de administradores
 -- ============================================
-CREATE TABLE menu_diario (
-    id_menu SERIAL PRIMARY KEY,
-    fecha DATE NOT NULL UNIQUE,
-    descripcion TEXT,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
-    CONSTRAINT chk_fecha_menu CHECK (fecha >= CURRENT_DATE - INTERVAL '30 days')
+CREATE TABLE administrador (
+    id_admi INTEGER PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL,
+    numero VARCHAR(10) NOT NULL,
+    correo VARCHAR(100) NOT NULL,
+    id_escuela INTEGER NOT NULL,
+    CONSTRAINT fk_administrador_escuela FOREIGN KEY (id_escuela) 
+        REFERENCES escuela(id_escuela) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
--- Índices para menu_diario
-CREATE INDEX idx_menu_fecha ON menu_diario(fecha);
-CREATE INDEX idx_menu_activo ON menu_diario(activo);
+-- Índices para administrador
+CREATE INDEX idx_administrador_nombre ON administrador(nombre);
+CREATE INDEX idx_administrador_escuela ON administrador(id_escuela);
+CREATE INDEX idx_administrador_correo ON administrador(correo);
 
 -- Comentarios
-COMMENT ON TABLE menu_diario IS 'Menús diarios del sistema';
-COMMENT ON COLUMN menu_diario.fecha IS 'Fecha del menú (única)';
+COMMENT ON TABLE administrador IS 'Tabla de administradores del sistema';
+COMMENT ON COLUMN administrador.numero IS 'Número de teléfono del administrador';
 
 -- ============================================
--- TABLA: menu_bocadito
--- Descripción: Relación entre menús y bocaditos
+-- TABLA: alumno
+-- Descripción: Almacena información de alumnos
 -- ============================================
-CREATE TABLE menu_bocadito (
-    id_menu INTEGER NOT NULL,
-    id_bocadito INTEGER NOT NULL,
-    cantidad_disponible INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (id_menu, id_bocadito),
-    CONSTRAINT fk_menu_bocadito_menu FOREIGN KEY (id_menu) 
-        REFERENCES menu_diario(id_menu) ON DELETE CASCADE,
-    CONSTRAINT fk_menu_bocadito_bocadito FOREIGN KEY (id_bocadito) 
-        REFERENCES bocadito(id_bocadito) ON DELETE RESTRICT,
-    CONSTRAINT chk_cantidad CHECK (cantidad_disponible >= 0)
+CREATE TABLE alumno (
+    id_alumno INTEGER PRIMARY KEY,
+    nombre VARCHAR(60) NOT NULL,
+    apellido VARCHAR(60) NOT NULL,
+    grupo VARCHAR(10) NOT NULL,
+    cuatrimestre VARCHAR(10) NOT NULL,
+    matricula VARCHAR(7) NOT NULL UNIQUE,
+    id_escuela INTEGER NOT NULL
 );
 
--- Índices para menu_bocadito
-CREATE INDEX idx_menu_bocadito_menu ON menu_bocadito(id_menu);
-CREATE INDEX idx_menu_bocadito_bocadito ON menu_bocadito(id_bocadito);
+-- Índices para alumno
+CREATE INDEX idx_alumno_nombre ON alumno(nombre, apellido);
+CREATE INDEX idx_alumno_matricula ON alumno(matricula);
+CREATE INDEX idx_alumno_grupo ON alumno(grupo);
+CREATE INDEX idx_alumno_escuela ON alumno(id_escuela);
 
 -- Comentarios
-COMMENT ON TABLE menu_bocadito IS 'Relación entre menús diarios y bocaditos disponibles';
-COMMENT ON COLUMN menu_bocadito.cantidad_disponible IS 'Cantidad disponible para ese día';
+COMMENT ON TABLE alumno IS 'Tabla de alumnos beneficiarios';
+COMMENT ON COLUMN alumno.matricula IS 'Matrícula única del alumno';
+COMMENT ON COLUMN alumno.grupo IS 'Grupo al que pertenece el alumno';
+COMMENT ON COLUMN alumno.cuatrimestre IS 'Cuatrimestre actual del alumno';
 
 -- ============================================
--- TABLA: responsable
--- Descripción: Personal responsable de entregas
+-- TABLA: comida
+-- Descripción: Almacena información de alimentos
 -- ============================================
-CREATE TABLE responsable (
-    id_responsable SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    cargo VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) NOT NULL,
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
-    CONSTRAINT chk_cargo CHECK (cargo IN ('coordinador', 'asistente', 'voluntario', 'supervisor'))
+CREATE TABLE comida (
+    id_comida INTEGER PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    tipo_comida VARCHAR(50) NOT NULL,
+    fecha_caducidad DATE NOT NULL,
+    id_donacion INTEGER NOT NULL
 );
 
--- Índices para responsable
-CREATE INDEX idx_responsable_cargo ON responsable(cargo);
-CREATE INDEX idx_responsable_activo ON responsable(activo);
+-- Índices para comida
+CREATE INDEX idx_comida_nombre ON comida(nombre);
+CREATE INDEX idx_comida_tipo ON comida(tipo_comida);
+CREATE INDEX idx_comida_fecha_caducidad ON comida(fecha_caducidad);
+CREATE INDEX idx_comida_donacion ON comida(id_donacion);
 
 -- Comentarios
-COMMENT ON TABLE responsable IS 'Personal responsable de las entregas';
-COMMENT ON COLUMN responsable.cargo IS 'Cargo o función del responsable';
-
--- ============================================
--- TABLA: pedido
--- Descripción: Pedidos de estudiantes
--- ============================================
-CREATE TABLE pedido (
-    id_pedido SERIAL PRIMARY KEY,
-    id_estudiante INTEGER NOT NULL,
-    id_menu INTEGER NOT NULL,
-    fecha_pedido TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
-    notas TEXT,
-    CONSTRAINT fk_pedido_estudiante FOREIGN KEY (id_estudiante) 
-        REFERENCES estudiante(id_estudiante) ON DELETE RESTRICT,
-    CONSTRAINT fk_pedido_menu FOREIGN KEY (id_menu) 
-        REFERENCES menu_diario(id_menu) ON DELETE RESTRICT,
-    CONSTRAINT chk_estado CHECK (estado IN ('pendiente', 'confirmado', 'entregado', 'cancelado')),
-    CONSTRAINT uk_pedido_estudiante_menu UNIQUE (id_estudiante, id_menu)
-);
-
--- Índices para pedido
-CREATE INDEX idx_pedido_estudiante ON pedido(id_estudiante);
-CREATE INDEX idx_pedido_menu ON pedido(id_menu);
-CREATE INDEX idx_pedido_fecha ON pedido(fecha_pedido);
-CREATE INDEX idx_pedido_estado ON pedido(estado);
-
--- Comentarios
-COMMENT ON TABLE pedido IS 'Pedidos realizados por estudiantes';
-COMMENT ON COLUMN pedido.estado IS 'Estado del pedido: pendiente, confirmado, entregado, cancelado';
-COMMENT ON CONSTRAINT uk_pedido_estudiante_menu ON pedido IS 'Un estudiante solo puede hacer un pedido por menú';
+COMMENT ON TABLE comida IS 'Catálogo de alimentos donados';
+COMMENT ON COLUMN comida.tipo_comida IS 'Tipo de alimento (bebida, snack, plato principal, etc.)';
+COMMENT ON COLUMN comida.fecha_caducidad IS 'Fecha de caducidad del alimento';
 
 -- ============================================
 -- TABLA: entrega
--- Descripción: Entregas de pedidos
+-- Descripción: Almacena información de entregas
 -- ============================================
 CREATE TABLE entrega (
-    id_entrega SERIAL PRIMARY KEY,
-    id_pedido INTEGER NOT NULL UNIQUE,
-    fecha_entrega TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    id_responsable INTEGER NOT NULL,
-    observaciones TEXT,
-    CONSTRAINT fk_entrega_pedido FOREIGN KEY (id_pedido) 
-        REFERENCES pedido(id_pedido) ON DELETE RESTRICT,
-    CONSTRAINT fk_entrega_responsable FOREIGN KEY (id_responsable) 
-        REFERENCES responsable(id_responsable) ON DELETE RESTRICT
+    id_entrega INTEGER PRIMARY KEY,
+    estado VARCHAR(20) NOT NULL,
+    fecha_entrega DATE NOT NULL,
+    id_admin INTEGER NOT NULL,
+    id_donacion INTEGER NOT NULL,
+    CONSTRAINT fk_entrega_administrador FOREIGN KEY (id_admin) 
+        REFERENCES administrador(id_admi) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_entrega_donacion FOREIGN KEY (id_donacion) 
+        REFERENCES donacion(id_donacion) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_estado CHECK (estado IN ('pendiente', 'en_proceso', 'completada', 'cancelada'))
 );
 
 -- Índices para entrega
-CREATE INDEX idx_entrega_pedido ON entrega(id_pedido);
 CREATE INDEX idx_entrega_fecha ON entrega(fecha_entrega);
-CREATE INDEX idx_entrega_responsable ON entrega(id_responsable);
+CREATE INDEX idx_entrega_estado ON entrega(estado);
+CREATE INDEX idx_entrega_admin ON entrega(id_admin);
+CREATE INDEX idx_entrega_donacion ON entrega(id_donacion);
 
 -- Comentarios
-COMMENT ON TABLE entrega IS 'Registro de entregas de pedidos';
-COMMENT ON COLUMN entrega.fecha_entrega IS 'Fecha y hora de la entrega';
+COMMENT ON TABLE entrega IS 'Tabla de entregas de donaciones';
+COMMENT ON COLUMN entrega.estado IS 'Estado de la entrega: pendiente, en_proceso, completada, cancelada';
 
 -- ============================================
 -- VISTAS
 -- ============================================
 
--- Vista: Resumen de pedidos por estudiante
-CREATE VIEW v_pedidos_estudiante AS
+-- Vista: Donaciones con información del donador
+CREATE VIEW v_donaciones_completas AS
 SELECT 
-    e.id_estudiante,
-    e.nombre || ' ' || e.apellido AS estudiante,
-    e.grado,
-    t.nombre || ' ' || t.apellido AS tutor,
-    COUNT(p.id_pedido) AS total_pedidos,
-    SUM(CASE WHEN p.estado = 'entregado' THEN 1 ELSE 0 END) AS pedidos_entregados,
-    SUM(CASE WHEN p.estado = 'pendiente' THEN 1 ELSE 0 END) AS pedidos_pendientes
-FROM estudiante e
-LEFT JOIN tutor t ON e.id_tutor = t.id_tutor
-LEFT JOIN pedido p ON e.id_estudiante = p.id_estudiante
-GROUP BY e.id_estudiante, e.nombre, e.apellido, e.grado, t.nombre, t.apellido;
+    d.id_donacion,
+    d.cantidad,
+    d.destino,
+    d.fecha_donacion,
+    don.nombre AS donador,
+    don.correo AS correo_donador,
+    don.celular AS celular_donador
+FROM donacion d
+JOIN donador don ON d.id_donador = don.id_donador
+ORDER BY d.fecha_donacion DESC;
 
--- Vista: Menú del día con bocaditos
-CREATE VIEW v_menu_del_dia AS
+-- Vista: Entregas con detalles
+CREATE VIEW v_entregas_detalladas AS
 SELECT 
-    m.id_menu,
-    m.fecha,
-    m.descripcion AS menu_descripcion,
-    b.nombre AS bocadito,
-    b.categoria,
-    b.precio,
-    mb.cantidad_disponible
-FROM menu_diario m
-JOIN menu_bocadito mb ON m.id_menu = mb.id_menu
-JOIN bocadito b ON mb.id_bocadito = b.id_bocadito
-WHERE m.activo = TRUE AND b.activo = TRUE
-ORDER BY m.fecha DESC, b.categoria;
+    e.id_entrega,
+    e.estado,
+    e.fecha_entrega,
+    a.nombre AS administrador,
+    a.correo AS correo_admin,
+    esc.nombre AS escuela,
+    d.cantidad AS cantidad_donacion,
+    d.destino
+FROM entrega e
+JOIN administrador a ON e.id_admin = a.id_admi
+JOIN escuela esc ON a.id_escuela = esc.id_escuela
+JOIN donacion d ON e.id_donacion = d.id_donacion
+ORDER BY e.fecha_entrega DESC;
 
--- Vista: Entregas por responsable
-CREATE VIEW v_entregas_responsable AS
+-- Vista: Alumnos por escuela
+CREATE VIEW v_alumnos_por_escuela AS
 SELECT 
-    r.id_responsable,
-    r.nombre || ' ' || r.apellido AS responsable,
-    r.cargo,
-    COUNT(ent.id_entrega) AS total_entregas,
-    DATE(ent.fecha_entrega) AS fecha
-FROM responsable r
-LEFT JOIN entrega ent ON r.id_responsable = ent.id_responsable
-GROUP BY r.id_responsable, r.nombre, r.apellido, r.cargo, DATE(ent.fecha_entrega);
+    al.id_alumno,
+    al.nombre || ' ' || al.apellido AS alumno_completo,
+    al.matricula,
+    al.grupo,
+    al.cuatrimestre,
+    al.id_escuela
+FROM alumno al
+ORDER BY al.id_escuela, al.grupo, al.nombre;
+
+-- Vista: Comidas próximas a caducar (30 días)
+CREATE VIEW v_comidas_proximas_caducar AS
+SELECT 
+    c.id_comida,
+    c.nombre,
+    c.tipo_comida,
+    c.fecha_caducidad,
+    CURRENT_DATE - c.fecha_caducidad AS dias_hasta_caducidad,
+    d.destino,
+    d.cantidad
+FROM comida c
+JOIN donacion d ON c.id_donacion = d.id_donacion
+WHERE c.fecha_caducidad BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+ORDER BY c.fecha_caducidad ASC;
 
 -- ============================================
 -- FUNCIONES Y TRIGGERS
 -- ============================================
 
--- Función: Actualizar cantidad disponible al crear pedido
-CREATE OR REPLACE FUNCTION actualizar_cantidad_disponible()
+-- Función: Validar fecha de caducidad
+CREATE OR REPLACE FUNCTION validar_fecha_caducidad()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Decrementar cantidad disponible cuando se confirma un pedido
-    IF NEW.estado = 'confirmado' AND (OLD.estado IS NULL OR OLD.estado != 'confirmado') THEN
-        UPDATE menu_bocadito
-        SET cantidad_disponible = cantidad_disponible - 1
-        WHERE id_menu = NEW.id_menu;
+    IF NEW.fecha_caducidad < CURRENT_DATE THEN
+        RAISE EXCEPTION 'La fecha de caducidad no puede ser anterior a la fecha actual';
     END IF;
-    
-    -- Incrementar cantidad si se cancela un pedido confirmado
-    IF NEW.estado = 'cancelado' AND OLD.estado = 'confirmado' THEN
-        UPDATE menu_bocadito
-        SET cantidad_disponible = cantidad_disponible + 1
-        WHERE id_menu = NEW.id_menu;
-    END IF;
-    
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger: Actualizar disponibilidad
-CREATE TRIGGER trg_actualizar_disponibilidad
-AFTER UPDATE ON pedido
+-- Trigger: Validar fecha de caducidad al insertar comida
+CREATE TRIGGER trg_validar_fecha_caducidad
+BEFORE INSERT OR UPDATE ON comida
 FOR EACH ROW
-EXECUTE FUNCTION actualizar_cantidad_disponible();
+EXECUTE FUNCTION validar_fecha_caducidad();
 
--- Función: Validar entrega solo para pedidos confirmados
-CREATE OR REPLACE FUNCTION validar_entrega()
+-- Función: Actualizar estado de entrega
+CREATE OR REPLACE FUNCTION actualizar_estado_entrega()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF (SELECT estado FROM pedido WHERE id_pedido = NEW.id_pedido) != 'confirmado' THEN
-        RAISE EXCEPTION 'Solo se pueden entregar pedidos confirmados';
+    -- Log de cambio de estado
+    IF OLD.estado != NEW.estado THEN
+        RAISE NOTICE 'Estado de entrega % cambiado de % a %', NEW.id_entrega, OLD.estado, NEW.estado;
     END IF;
-    
-    -- Actualizar estado del pedido a entregado
-    UPDATE pedido SET estado = 'entregado' WHERE id_pedido = NEW.id_pedido;
-    
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger: Validar estado antes de entrega
-CREATE TRIGGER trg_validar_entrega
-BEFORE INSERT ON entrega
+-- Trigger: Registrar cambios de estado
+CREATE TRIGGER trg_actualizar_estado_entrega
+AFTER UPDATE ON entrega
 FOR EACH ROW
-EXECUTE FUNCTION validar_entrega();
+EXECUTE FUNCTION actualizar_estado_entrega();
 
 -- ============================================
 -- PERMISOS (Roles básicos)
@@ -344,7 +308,7 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO bocaditos_user;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO bocaditos_readonly;
 
 -- ============================================
--- DATOS INICIALES
+-- DATOS INICIALES (Opcional)
 -- ============================================
 
 -- Script completado

@@ -1,7 +1,9 @@
 # Base de Datos - Sistema Bocaditos
 
 ## Descripción
-Este directorio contiene el **repositorio completo de base de datos** para el sistema de apoyo alimentario escolar "Bocaditos" de UTRM. Incluye modelado lógico, modelado físico, archivos SQL y control de versiones documentado.
+Este directorio contiene el **repositorio completo de base de datos** para el sistema de donaciones alimentarias "Bocaditos" de UTRM. Este sistema gestiona donaciones de alimentos a escuelas, incluyendo donadores, entregas, administradores y alumnos beneficiarios. Incluye modelado lógico, modelado físico, archivos SQL y control de versiones documentado.
+
+**Adaptado de**: Esquema MySQL/MariaDB original del cliente
 
 ## Estructura del Directorio
 
@@ -122,9 +124,9 @@ psql -U postgres
 \dt
 
 -- Verificar conteo de registros
-SELECT COUNT(*) FROM tutor;
-SELECT COUNT(*) FROM estudiante;
-SELECT COUNT(*) FROM bocadito;
+SELECT COUNT(*) FROM donador;
+SELECT COUNT(*) FROM donacion;
+SELECT COUNT(*) FROM escuela;
 ```
 
 ### Instalación Rápida
@@ -155,54 +157,60 @@ psql -U postgres -d bocaditos_db -f sql/dml/02_queries.sql
 
 El sistema maneja las siguientes entidades:
 
-1. **Tutor**: Padres o tutores de estudiantes
-2. **Estudiante**: Beneficiarios del programa
-3. **Bocadito**: Catálogo de alimentos
-4. **Menú Diario**: Menús disponibles por fecha
-5. **Menu_Bocadito**: Relación menú-alimentos
-6. **Pedido**: Solicitudes de estudiantes
-7. **Entrega**: Registro de entregas
-8. **Responsable**: Personal de entrega
+1. **Donador**: Personas o instituciones que realizan donaciones
+2. **Donación**: Registro de donaciones con cantidad y destino
+3. **Escuela**: Instituciones educativas beneficiarias
+4. **Administrador**: Personal que gestiona entregas en escuelas
+5. **Alumno**: Estudiantes beneficiarios del programa
+6. **Comida**: Catálogo de alimentos donados
+7. **Entrega**: Registro de entregas de donaciones
 
 ## Diagrama Simplificado
 
 ```
-┌─────────┐       ┌────────────┐       ┌─────────┐
-│  Tutor  │──1:N──│ Estudiante │──N:1──│  Pedido │
-└─────────┘       └────────────┘       └─────────┘
-                                            │
-                                           N:1
-                                            │
-                                       ┌────▼──────┐
-                                       │Menu Diario│
-                                       └────┬──────┘
-                                            │
-                                           N:M
-                                            │
-                                       ┌────▼────┐
-                                       │Bocadito │
-                                       └─────────┘
+┌─────────┐       ┌──────────┐       ┌─────────┐
+│ Donador │──1:N──│ Donación │──1:N──│ Escuela │
+└─────────┘       └────┬─────┘       └────┬────┘
+                       │                   │
+                       │                   1:N
+                       │                   │
+                      1:N             ┌────▼──────┐
+                       │              │Administrador│
+                  ┌────▼────┐        └────┬───────┘
+                  │ Comida  │             │
+                  └─────────┘            1:N
+                                          │
+                                     ┌────▼────┐
+                                     │ Entrega │
+                                     └─────────┘
+
+┌─────────┐
+│ Escuela │──1:N──┌────────┐
+└─────────┘       │ Alumno │
+                  └────────┘
 ```
 
 ## Funcionalidades Implementadas
 
 ### Triggers Automáticos
-1. **Gestión de Inventario**: Actualiza automáticamente la cantidad disponible al confirmar/cancelar pedidos
-2. **Validación de Entregas**: Verifica que solo se entreguen pedidos confirmados
+1. **Validación de Fechas**: Verifica que las fechas de caducidad sean válidas
+2. **Registro de Cambios**: Registra cambios de estado en entregas
 
 ### Vistas Útiles
-1. **v_pedidos_estudiante**: Resumen de pedidos por estudiante
-2. **v_menu_del_dia**: Vista detallada del menú actual
-3. **v_entregas_responsable**: Estadísticas de entregas
+1. **v_donaciones_completas**: Donaciones con información del donador
+2. **v_entregas_detalladas**: Detalles completos de entregas
+3. **v_alumnos_por_escuela**: Lista de alumnos por institución
+4. **v_comidas_proximas_caducar**: Alimentos próximos a vencer
 
 ### Consultas Predefinidas
-- Menú del día con disponibilidad
-- Pedidos pendientes
-- Estadísticas diarias
-- Estudiantes más activos
-- Bocaditos populares
-- Rendimiento de responsables
-- Análisis por grado
+- Donaciones con información completa
+- Entregas pendientes
+- Estadísticas de donaciones por donador
+- Alumnos por escuela
+- Inventario de comidas por tipo
+- Alimentos próximos a caducar
+- Rendimiento de administradores
+- Donaciones por mes
 
 ## Mantenimiento
 

@@ -1,6 +1,6 @@
 -- ============================================
 -- Consultas Comunes
--- Sistema: Bocaditos - Apoyo Alimentario Escolar UTRM
+-- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
 -- Versión: 1.0.0
 -- Descripción: Consultas SQL frecuentes del sistema
 -- ============================================
@@ -9,210 +9,251 @@
 -- CONSULTAS DE REPORTES
 -- ============================================
 
--- Reporte 1: Menú del día con disponibilidad
+-- Reporte 1: Donaciones con información completa del donador
 SELECT 
-    m.fecha,
-    b.nombre AS bocadito,
-    b.categoria,
-    b.precio,
-    mb.cantidad_disponible,
-    b.calorias
-FROM menu_diario m
-JOIN menu_bocadito mb ON m.id_menu = mb.id_menu
-JOIN bocadito b ON mb.id_bocadito = b.id_bocadito
-WHERE m.fecha = CURRENT_DATE
-ORDER BY b.categoria, b.nombre;
+    d.id_donacion,
+    d.cantidad,
+    d.destino,
+    d.fecha_donacion,
+    don.nombre AS donador,
+    don.correo AS correo_donador,
+    don.celular AS telefono_donador,
+    don.direccion AS direccion_donador
+FROM donacion d
+JOIN donador don ON d.id_donador = don.id_donador
+ORDER BY d.fecha_donacion DESC;
 
--- Reporte 2: Pedidos pendientes por entregar
+-- Reporte 2: Entregas pendientes
 SELECT 
-    p.id_pedido,
-    e.nombre || ' ' || e.apellido AS estudiante,
-    e.grado,
-    t.nombre || ' ' || t.apellido AS tutor,
-    t.telefono AS telefono_tutor,
-    m.fecha AS fecha_menu,
-    p.fecha_pedido,
-    p.notas
-FROM pedido p
-JOIN estudiante e ON p.id_estudiante = e.id_estudiante
-JOIN tutor t ON e.id_tutor = t.id_tutor
-JOIN menu_diario m ON p.id_menu = m.id_menu
-WHERE p.estado = 'confirmado'
-ORDER BY m.fecha, e.grado, e.nombre;
+    e.id_entrega,
+    e.estado,
+    e.fecha_entrega,
+    a.nombre AS administrador,
+    a.correo AS correo_admin,
+    a.numero AS telefono_admin,
+    esc.nombre AS escuela,
+    esc.ubicacion,
+    d.cantidad,
+    d.destino
+FROM entrega e
+JOIN administrador a ON e.id_admin = a.id_admi
+JOIN escuela esc ON a.id_escuela = esc.id_escuela
+JOIN donacion d ON e.id_donacion = d.id_donacion
+WHERE e.estado IN ('pendiente', 'en_proceso')
+ORDER BY e.fecha_entrega ASC;
 
--- Reporte 3: Estadísticas diarias de pedidos
+-- Reporte 3: Estadísticas de donaciones por donador
 SELECT 
-    m.fecha,
-    COUNT(DISTINCT p.id_pedido) AS total_pedidos,
-    COUNT(DISTINCT CASE WHEN p.estado = 'confirmado' THEN p.id_pedido END) AS confirmados,
-    COUNT(DISTINCT CASE WHEN p.estado = 'entregado' THEN p.id_pedido END) AS entregados,
-    COUNT(DISTINCT CASE WHEN p.estado = 'cancelado' THEN p.id_pedido END) AS cancelados,
-    COUNT(DISTINCT p.id_estudiante) AS estudiantes_unicos
-FROM menu_diario m
-LEFT JOIN pedido p ON m.id_menu = p.id_menu
-GROUP BY m.fecha
-ORDER BY m.fecha DESC;
+    don.nombre AS donador,
+    don.correo,
+    COUNT(d.id_donacion) AS total_donaciones,
+    SUM(d.cantidad) AS cantidad_total,
+    MIN(d.fecha_donacion) AS primera_donacion,
+    MAX(d.fecha_donacion) AS ultima_donacion
+FROM donador don
+LEFT JOIN donacion d ON don.id_donador = d.id_donador
+GROUP BY don.id_donador, don.nombre, don.correo
+ORDER BY total_donaciones DESC, cantidad_total DESC;
 
--- Reporte 4: Estudiantes más activos
+-- Reporte 4: Alumnos por escuela
 SELECT 
-    e.id_estudiante,
-    e.nombre || ' ' || e.apellido AS estudiante,
-    e.grado,
-    COUNT(p.id_pedido) AS total_pedidos,
-    COUNT(CASE WHEN p.estado = 'entregado' THEN 1 END) AS pedidos_entregados,
-    MAX(p.fecha_pedido) AS ultimo_pedido
-FROM estudiante e
-LEFT JOIN pedido p ON e.id_estudiante = p.id_estudiante
-GROUP BY e.id_estudiante, e.nombre, e.apellido, e.grado
-HAVING COUNT(p.id_pedido) > 0
-ORDER BY total_pedidos DESC
-LIMIT 10;
+    esc.nombre AS escuela,
+    esc.ubicacion,
+    COUNT(al.id_alumno) AS total_alumnos,
+    COUNT(DISTINCT al.grupo) AS grupos_diferentes,
+    COUNT(DISTINCT al.cuatrimestre) AS cuatrimestres_diferentes
+FROM escuela esc
+LEFT JOIN alumno al ON esc.id_escuela = al.id_escuela
+GROUP BY esc.id_escuela, esc.nombre, esc.ubicacion
+ORDER BY total_alumnos DESC;
 
--- Reporte 5: Bocaditos más populares
+-- Reporte 5: Inventario de comidas por tipo
 SELECT 
-    b.nombre,
-    b.categoria,
-    b.precio,
-    COUNT(mb.id_menu) AS veces_en_menu,
-    SUM(mb.cantidad_disponible) AS total_disponible
-FROM bocadito b
-LEFT JOIN menu_bocadito mb ON b.id_bocadito = mb.id_bocadito
-WHERE b.activo = TRUE
-GROUP BY b.id_bocadito, b.nombre, b.categoria, b.precio
-ORDER BY veces_en_menu DESC, total_disponible DESC;
+    c.tipo_comida,
+    COUNT(c.id_comida) AS cantidad_productos,
+    COUNT(CASE WHEN c.fecha_caducidad > CURRENT_DATE + INTERVAL '30 days' THEN 1 END) AS productos_buena_fecha,
+    COUNT(CASE WHEN c.fecha_caducidad BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days' THEN 1 END) AS productos_proximo_vencer,
+    COUNT(CASE WHEN c.fecha_caducidad < CURRENT_DATE THEN 1 END) AS productos_vencidos
+FROM comida c
+GROUP BY c.tipo_comida
+ORDER BY cantidad_productos DESC;
 
--- Reporte 6: Rendimiento de responsables
+-- Reporte 6: Alimentos próximos a caducar (30 días)
 SELECT 
-    r.nombre || ' ' || r.apellido AS responsable,
-    r.cargo,
-    COUNT(ent.id_entrega) AS total_entregas,
-    MIN(ent.fecha_entrega) AS primera_entrega,
-    MAX(ent.fecha_entrega) AS ultima_entrega
-FROM responsable r
-LEFT JOIN entrega ent ON r.id_responsable = ent.id_responsable
-GROUP BY r.id_responsable, r.nombre, r.apellido, r.cargo
+    c.id_comida,
+    c.nombre,
+    c.tipo_comida,
+    c.fecha_caducidad,
+    CURRENT_DATE + INTERVAL '1 day' - c.fecha_caducidad AS dias_restantes,
+    d.destino,
+    d.cantidad AS cantidad_donacion,
+    don.nombre AS donador
+FROM comida c
+JOIN donacion d ON c.id_donacion = d.id_donacion
+JOIN donador don ON d.id_donador = don.id_donador
+WHERE c.fecha_caducidad BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+ORDER BY c.fecha_caducidad ASC;
+
+-- Reporte 7: Rendimiento de administradores
+SELECT 
+    a.nombre AS administrador,
+    a.correo,
+    esc.nombre AS escuela,
+    COUNT(e.id_entrega) AS total_entregas,
+    COUNT(CASE WHEN e.estado = 'completada' THEN 1 END) AS entregas_completadas,
+    COUNT(CASE WHEN e.estado = 'en_proceso' THEN 1 END) AS entregas_en_proceso,
+    COUNT(CASE WHEN e.estado = 'pendiente' THEN 1 END) AS entregas_pendientes
+FROM administrador a
+LEFT JOIN entrega e ON a.id_admi = e.id_admin
+LEFT JOIN escuela esc ON a.id_escuela = esc.id_escuela
+GROUP BY a.id_admi, a.nombre, a.correo, esc.nombre
 ORDER BY total_entregas DESC;
 
--- Reporte 7: Análisis por grado escolar
+-- Reporte 8: Donaciones por mes
 SELECT 
-    e.grado,
-    COUNT(DISTINCT e.id_estudiante) AS total_estudiantes,
-    COUNT(p.id_pedido) AS total_pedidos,
-    ROUND(COUNT(p.id_pedido)::NUMERIC / NULLIF(COUNT(DISTINCT e.id_estudiante), 0), 2) AS promedio_pedidos_estudiante
-FROM estudiante e
-LEFT JOIN pedido p ON e.id_estudiante = p.id_estudiante
-GROUP BY e.grado
-ORDER BY e.grado;
-
--- Reporte 8: Disponibilidad próximos 7 días
-SELECT 
-    m.fecha,
-    m.descripcion,
-    COUNT(mb.id_bocadito) AS bocaditos_disponibles,
-    SUM(mb.cantidad_disponible) AS total_porciones
-FROM menu_diario m
-LEFT JOIN menu_bocadito mb ON m.id_menu = mb.id_menu
-WHERE m.fecha BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
-GROUP BY m.id_menu, m.fecha, m.descripcion
-ORDER BY m.fecha;
+    DATE_TRUNC('month', d.fecha_donacion) AS mes,
+    COUNT(d.id_donacion) AS total_donaciones,
+    SUM(d.cantidad) AS cantidad_total,
+    COUNT(DISTINCT d.id_donador) AS donadores_unicos
+FROM donacion d
+GROUP BY DATE_TRUNC('month', d.fecha_donacion)
+ORDER BY mes DESC;
 
 -- ============================================
 -- CONSULTAS ADMINISTRATIVAS
 -- ============================================
 
--- Consulta 1: Tutores con múltiples estudiantes
+-- Consulta 1: Escuelas sin alumnos registrados
 SELECT 
-    t.nombre || ' ' || t.apellido AS tutor,
-    t.email,
-    t.telefono,
-    COUNT(e.id_estudiante) AS cantidad_estudiantes,
-    STRING_AGG(e.nombre || ' ' || e.apellido, ', ') AS estudiantes
-FROM tutor t
-JOIN estudiante e ON t.id_tutor = e.id_tutor
-GROUP BY t.id_tutor, t.nombre, t.apellido, t.email, t.telefono
-HAVING COUNT(e.id_estudiante) > 1
-ORDER BY cantidad_estudiantes DESC;
+    e.id_escuela,
+    e.nombre,
+    e.ubicacion
+FROM escuela e
+LEFT JOIN alumno al ON e.id_escuela = al.id_escuela
+WHERE al.id_alumno IS NULL
+ORDER BY e.nombre;
 
--- Consulta 2: Pedidos sin entregar (más de 1 día)
+-- Consulta 2: Donadores más activos (últimos 6 meses)
 SELECT 
-    p.id_pedido,
-    e.nombre || ' ' || e.apellido AS estudiante,
-    m.fecha AS fecha_menu,
-    p.fecha_pedido,
-    p.estado,
-    CURRENT_DATE - m.fecha AS dias_retraso
-FROM pedido p
-JOIN estudiante e ON p.id_estudiante = e.id_estudiante
-JOIN menu_diario m ON p.id_menu = m.id_menu
-WHERE p.estado IN ('confirmado', 'pendiente')
-  AND m.fecha < CURRENT_DATE
-ORDER BY dias_retraso DESC;
+    don.nombre AS donador,
+    don.correo,
+    don.celular,
+    COUNT(d.id_donacion) AS donaciones_recientes,
+    SUM(d.cantidad) AS cantidad_total
+FROM donador don
+JOIN donacion d ON don.id_donador = d.id_donador
+WHERE d.fecha_donacion >= CURRENT_DATE - INTERVAL '6 months'
+GROUP BY don.id_donador, don.nombre, don.correo, don.celular
+HAVING COUNT(d.id_donacion) > 0
+ORDER BY donaciones_recientes DESC, cantidad_total DESC;
 
--- Consulta 3: Bocaditos nunca incluidos en menús
+-- Consulta 3: Entregas completadas por escuela
 SELECT 
-    b.nombre,
-    b.categoria,
-    b.precio,
-    b.fecha_creacion
-FROM bocadito b
-LEFT JOIN menu_bocadito mb ON b.id_bocadito = mb.id_bocadito
-WHERE mb.id_bocadito IS NULL
-  AND b.activo = TRUE
-ORDER BY b.fecha_creacion;
+    esc.nombre AS escuela,
+    esc.ubicacion,
+    COUNT(e.id_entrega) AS entregas_completadas,
+    SUM(d.cantidad) AS total_alimentos_recibidos
+FROM escuela esc
+JOIN administrador a ON esc.id_escuela = a.id_escuela
+JOIN entrega e ON a.id_admi = e.id_admin
+JOIN donacion d ON e.id_donacion = d.id_donacion
+WHERE e.estado = 'completada'
+GROUP BY esc.id_escuela, esc.nombre, esc.ubicacion
+ORDER BY entregas_completadas DESC;
 
--- Consulta 4: Estudiantes sin pedidos recientes (últimos 30 días)
+-- Consulta 4: Alumnos por grupo y cuatrimestre
 SELECT 
-    e.id_estudiante,
-    e.nombre || ' ' || e.apellido AS estudiante,
-    e.grado,
-    t.nombre || ' ' || t.apellido AS tutor,
-    t.telefono,
-    MAX(p.fecha_pedido) AS ultimo_pedido
-FROM estudiante e
-JOIN tutor t ON e.id_tutor = t.id_tutor
-LEFT JOIN pedido p ON e.id_estudiante = p.id_estudiante
-WHERE e.activo = TRUE
-GROUP BY e.id_estudiante, e.nombre, e.apellido, e.grado, t.nombre, t.apellido, t.telefono
-HAVING MAX(p.fecha_pedido) IS NULL 
-   OR MAX(p.fecha_pedido) < CURRENT_DATE - INTERVAL '30 days'
-ORDER BY e.grado, e.nombre;
+    al.cuatrimestre,
+    al.grupo,
+    COUNT(al.id_alumno) AS total_alumnos,
+    esc.nombre AS escuela
+FROM alumno al
+JOIN escuela esc ON al.id_escuela = esc.id_escuela
+GROUP BY al.cuatrimestre, al.grupo, esc.nombre
+ORDER BY al.cuatrimestre, al.grupo;
 
 -- ============================================
 -- CONSULTAS DE ANÁLISIS
 -- ============================================
 
--- Análisis 1: Preferencias por categoría
+-- Análisis 1: Distribución de alimentos por tipo
 SELECT 
-    b.categoria,
-    COUNT(DISTINCT mb.id_menu) AS menus_incluido,
-    AVG(mb.cantidad_disponible) AS promedio_cantidad,
-    AVG(b.precio) AS precio_promedio
-FROM bocadito b
-JOIN menu_bocadito mb ON b.id_bocadito = mb.id_bocadito
-GROUP BY b.categoria
-ORDER BY menus_incluido DESC;
+    c.tipo_comida,
+    COUNT(c.id_comida) AS total_productos,
+    ROUND(COUNT(c.id_comida) * 100.0 / (SELECT COUNT(*) FROM comida), 2) AS porcentaje
+FROM comida c
+GROUP BY c.tipo_comida
+ORDER BY total_productos DESC;
 
--- Análisis 2: Tendencia de pedidos por mes
+-- Análisis 2: Eficiencia de entregas
 SELECT 
-    DATE_TRUNC('month', p.fecha_pedido) AS mes,
-    COUNT(p.id_pedido) AS total_pedidos,
-    COUNT(DISTINCT p.id_estudiante) AS estudiantes_activos,
-    COUNT(CASE WHEN p.estado = 'entregado' THEN 1 END) AS entregados
-FROM pedido p
-GROUP BY DATE_TRUNC('month', p.fecha_pedido)
-ORDER BY mes DESC;
+    e.estado,
+    COUNT(e.id_entrega) AS total,
+    ROUND(COUNT(e.id_entrega) * 100.0 / (SELECT COUNT(*) FROM entrega), 2) AS porcentaje
+FROM entrega e
+GROUP BY e.estado
+ORDER BY total DESC;
 
--- Análisis 3: Eficiencia de entregas por día de la semana
+-- Análisis 3: Tiempo promedio entre donación y entrega
 SELECT 
-    TO_CHAR(m.fecha, 'Day') AS dia_semana,
-    COUNT(p.id_pedido) AS total_pedidos,
-    COUNT(ent.id_entrega) AS total_entregas,
-    ROUND(COUNT(ent.id_entrega)::NUMERIC / NULLIF(COUNT(p.id_pedido), 0) * 100, 2) AS porcentaje_entrega
-FROM menu_diario m
-JOIN pedido p ON m.id_menu = p.id_menu
-LEFT JOIN entrega ent ON p.id_pedido = ent.id_pedido
-GROUP BY TO_CHAR(m.fecha, 'Day'), EXTRACT(DOW FROM m.fecha)
-ORDER BY EXTRACT(DOW FROM m.fecha);
+    AVG(e.fecha_entrega - d.fecha_donacion) AS dias_promedio_entrega,
+    MIN(e.fecha_entrega - d.fecha_donacion) AS dias_minimos,
+    MAX(e.fecha_entrega - d.fecha_donacion) AS dias_maximos
+FROM entrega e
+JOIN donacion d ON e.id_donacion = d.id_donacion
+WHERE e.estado = 'completada';
+
+-- Análisis 4: Cobertura por escuela (alumnos vs capacidad)
+SELECT 
+    esc.nombre AS escuela,
+    COUNT(al.id_alumno) AS alumnos_registrados,
+    COUNT(DISTINCT al.grupo) AS grupos_activos,
+    ROUND(COUNT(al.id_alumno)::NUMERIC / NULLIF(COUNT(DISTINCT al.grupo), 0), 2) AS promedio_alumnos_por_grupo
+FROM escuela esc
+LEFT JOIN alumno al ON esc.id_escuela = al.id_escuela
+GROUP BY esc.id_escuela, esc.nombre
+ORDER BY alumnos_registrados DESC;
+
+-- ============================================
+-- CONSULTAS ÚTILES PARA OPERACIONES
+-- ============================================
+
+-- Obtener próximas entregas programadas
+SELECT 
+    e.fecha_entrega,
+    e.estado,
+    esc.nombre AS escuela,
+    esc.ubicacion,
+    a.nombre AS administrador_responsable,
+    a.numero AS telefono_contacto,
+    d.cantidad,
+    don.nombre AS donador
+FROM entrega e
+JOIN administrador a ON e.id_admin = a.id_admi
+JOIN escuela esc ON a.id_escuela = esc.id_escuela
+JOIN donacion d ON e.id_donacion = d.id_donacion
+JOIN donador don ON d.id_donador = don.id_donador
+WHERE e.fecha_entrega >= CURRENT_DATE
+  AND e.estado != 'cancelada'
+ORDER BY e.fecha_entrega ASC;
+
+-- Listar alimentos disponibles por donación
+SELECT 
+    d.id_donacion,
+    d.destino,
+    d.fecha_donacion,
+    c.nombre AS alimento,
+    c.tipo_comida,
+    c.fecha_caducidad,
+    CASE 
+        WHEN c.fecha_caducidad < CURRENT_DATE THEN 'VENCIDO'
+        WHEN c.fecha_caducidad <= CURRENT_DATE + INTERVAL '7 days' THEN 'URGENTE'
+        WHEN c.fecha_caducidad <= CURRENT_DATE + INTERVAL '30 days' THEN 'PRONTO'
+        ELSE 'BUENO'
+    END AS urgencia
+FROM donacion d
+JOIN comida c ON d.id_donacion = c.id_donacion
+ORDER BY d.fecha_donacion DESC, c.fecha_caducidad ASC;
 
 -- Script completado
 SELECT 'Consultas comunes cargadas exitosamente' AS mensaje;
