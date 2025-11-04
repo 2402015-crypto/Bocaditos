@@ -1,9 +1,10 @@
 # Base de Datos - Sistema Bocaditos
 
 ## Descripción
-Este directorio contiene el **repositorio completo de base de datos** para el sistema de donaciones alimentarias "Bocaditos" de UTRM. Este sistema gestiona donaciones de alimentos a escuelas, incluyendo donadores, entregas, administradores y alumnos beneficiarios. Incluye modelado lógico, modelado físico, archivos SQL y control de versiones documentado.
+Este directorio contiene el **repositorio completo de base de datos** para el sistema de donaciones alimentarias "Bocaditos" de UTRM. Este sistema gestiona donaciones de alimentos para **una sola escuela**, incluyendo donadores, entregas, administradores y alumnos beneficiarios. Incluye modelado lógico, modelado físico, archivos SQL y control de versiones documentado.
 
-**Adaptado de**: Esquema MySQL/MariaDB original del cliente
+**Motor de Base de Datos**: MySQL/MariaDB
+**Basado en**: Esquema original del cliente adaptado para una escuela
 
 ## Estructura del Directorio
 
@@ -41,7 +42,7 @@ Contiene la documentación del diseño conceptual de la base de datos:
 ### 2. Modelado Físico
 **Ubicación**: `/database/modelado-fisico/`
 
-Describe la implementación física en PostgreSQL:
+Describe la implementación física en MySQL/MariaDB:
 - Especificaciones técnicas de tablas
 - Índices y restricciones
 - Tipos de datos
@@ -57,14 +58,12 @@ Describe la implementación física en PostgreSQL:
 **Ubicación**: `/database/sql/ddl/`
 
 Scripts para crear la estructura de la base de datos:
-- `01_create_schema.sql`: Creación completa del esquema
-  - Tablas
+- `01_create_schema.sql`: Creación completa del esquema MySQL
+  - Tablas (6 tablas para una escuela)
   - Índices
   - Constraints
   - Triggers
-  - Funciones
   - Vistas
-  - Roles y permisos
 
 #### DML (Data Manipulation Language)
 **Ubicación**: `/database/sql/dml/`
@@ -88,8 +87,8 @@ Control de versiones de la base de datos:
 ## Guía de Instalación
 
 ### Requisitos Previos
-- PostgreSQL 14 o superior
-- Cliente psql o herramienta de administración (pgAdmin, DBeaver, etc.)
+- MySQL 8.0+ o MariaDB 10.4+
+- Cliente mysql o herramienta de administración (MySQL Workbench, phpMyAdmin, DBeaver, etc.)
 - Usuario con privilegios de creación de base de datos
 
 ### Instalación Paso a Paso
@@ -102,104 +101,95 @@ cd Bocaditos/database
 
 #### 2. Crear la base de datos y esquema
 ```bash
-# Conectar a PostgreSQL
-psql -U postgres
+# Conectar a MySQL
+mysql -u root -p
 
 # Ejecutar script de creación
-\i sql/ddl/01_create_schema.sql
+source sql/ddl/01_create_schema.sql;
 ```
 
 #### 3. Cargar datos iniciales (opcional)
 ```bash
-# Conectar a la base de datos bocaditos_db
-\c bocaditos_db
-
 # Ejecutar script de datos
-\i sql/dml/01_insert_data.sql
+mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ```
 
 #### 4. Verificar instalación
 ```sql
 -- Listar todas las tablas
-\dt
+USE bocaditos_db;
+SHOW TABLES;
 
 -- Verificar conteo de registros
 SELECT COUNT(*) FROM donador;
 SELECT COUNT(*) FROM donacion;
-SELECT COUNT(*) FROM escuela;
+SELECT COUNT(*) FROM alumno;
 ```
 
 ### Instalación Rápida
 ```bash
 # Ejecutar todos los scripts en orden
-psql -U postgres -f sql/ddl/01_create_schema.sql
-psql -U postgres -d bocaditos_db -f sql/dml/01_insert_data.sql
+mysql -u root -p < sql/ddl/01_create_schema.sql
+mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ```
 
 ## Uso de los Scripts
 
 ### Crear la estructura completa
 ```bash
-psql -U postgres -f sql/ddl/01_create_schema.sql
+mysql -u root -p < sql/ddl/01_create_schema.sql
 ```
 
 ### Cargar datos de prueba
 ```bash
-psql -U postgres -d bocaditos_db -f sql/dml/01_insert_data.sql
+mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ```
 
 ### Ejecutar consultas de ejemplo
 ```bash
-psql -U postgres -d bocaditos_db -f sql/dml/02_queries.sql
+mysql -u root -p bocaditos_db < sql/dml/02_queries.sql
 ```
 
 ## Entidades Principales
 
-El sistema maneja las siguientes entidades:
+El sistema maneja las siguientes entidades para **una sola escuela (UTRM)**:
 
 1. **Donador**: Personas o instituciones que realizan donaciones
 2. **Donación**: Registro de donaciones con cantidad y destino
-3. **Escuela**: Instituciones educativas beneficiarias
-4. **Administrador**: Personal que gestiona entregas en escuelas
-5. **Alumno**: Estudiantes beneficiarios del programa
-6. **Comida**: Catálogo de alimentos donados
-7. **Entrega**: Registro de entregas de donaciones
+3. **Administrador**: Personal que gestiona entregas en la escuela
+4. **Alumno**: Estudiantes beneficiarios del programa
+5. **Comida**: Catálogo de alimentos donados
+6. **Entrega**: Registro de entregas de donaciones
 
-## Diagrama Simplificado
+## Diagrama Simplificado (Una Escuela)
 
 ```
-┌─────────┐       ┌──────────┐       ┌─────────┐
-│ Donador │──1:N──│ Donación │──1:N──│ Escuela │
-└─────────┘       └────┬─────┘       └────┬────┘
-                       │                   │
-                       │                   1:N
-                       │                   │
-                      1:N             ┌────▼──────┐
-                       │              │Administrador│
-                  ┌────▼────┐        └────┬───────┘
-                  │ Comida  │             │
-                  └─────────┘            1:N
-                                          │
-                                     ┌────▼────┐
-                                     │ Entrega │
-                                     └─────────┘
+┌─────────┐       ┌──────────┐
+│ Donador │──1:N──│ Donación │
+└─────────┘       └────┬─────┘
+                       │
+                       │
+                      1:N
+                       │
+                  ┌────▼────┐
+                  │ Comida  │
+                  └─────────┘
 
-┌─────────┐
-│ Escuela │──1:N──┌────────┐
-└─────────┘       │ Alumno │
-                  └────────┘
+[Administrador] 1----N [Entrega] N----1 [Donacion]
+
+[Alumno] (Tabla independiente - todos de UTRM)
 ```
 
 ## Funcionalidades Implementadas
 
 ### Triggers Automáticos
-1. **Validación de Fechas**: Verifica que las fechas de caducidad sean válidas
-2. **Registro de Cambios**: Registra cambios de estado en entregas
+1. **Validación de Fechas (INSERT)**: Verifica que las fechas de caducidad sean válidas al insertar
+2. **Validación de Fechas (UPDATE)**: Verifica que las fechas de caducidad sean válidas al actualizar
 
 ### Vistas Útiles
 1. **v_donaciones_completas**: Donaciones con información del donador
 2. **v_entregas_detalladas**: Detalles completos de entregas
-3. **v_alumnos_por_escuela**: Lista de alumnos por institución
+3. **v_alumnos**: Lista completa de alumnos
 4. **v_comidas_proximas_caducar**: Alimentos próximos a vencer
 
 ### Consultas Predefinidas

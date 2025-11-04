@@ -3,195 +3,138 @@
 -- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
 -- Versión: 1.0.0
 -- Fecha: 2025-11-04
--- Motor: PostgreSQL 14+
--- Adaptado de: MySQL/MariaDB Schema Original
+-- Motor: MySQL/MariaDB
+-- Basado en: Esquema original del cliente
+-- Adaptado para: Una sola escuela
 -- ============================================
 
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Crear base de datos
-CREATE DATABASE bocaditos_db
-    WITH 
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'es_ES.UTF-8'
-    LC_CTYPE = 'es_ES.UTF-8'
-    TEMPLATE = template0;
+CREATE DATABASE IF NOT EXISTS `bocaditos_db`
+    DEFAULT CHARACTER SET utf8mb4
+    COLLATE utf8mb4_general_ci;
 
--- Conectar a la base de datos
-\c bocaditos_db;
-
--- Crear extensiones necesarias
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+USE `bocaditos_db`;
 
 -- ============================================
 -- TABLA: donador
 -- Descripción: Almacena información de donadores
 -- ============================================
-CREATE TABLE donador (
-    id_donador INTEGER PRIMARY KEY,
-    nombre VARCHAR(60) NOT NULL,
-    correo VARCHAR(150) NOT NULL,
-    celular VARCHAR(10) NOT NULL,
-    direccion VARCHAR(255) NOT NULL
-);
-
--- Índices para donador
-CREATE INDEX idx_donador_nombre ON donador(nombre);
-CREATE INDEX idx_donador_correo ON donador(correo);
-
--- Comentarios
-COMMENT ON TABLE donador IS 'Tabla de donadores del sistema';
-COMMENT ON COLUMN donador.id_donador IS 'Identificador único del donador';
-COMMENT ON COLUMN donador.correo IS 'Correo electrónico del donador';
+DROP TABLE IF EXISTS `donador`;
+CREATE TABLE `donador` (
+    `id_donador` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre del donador o institución',
+    `correo` VARCHAR(150) NOT NULL COMMENT 'Correo electrónico de contacto',
+    `celular` VARCHAR(10) NOT NULL COMMENT 'Número de teléfono celular',
+    `direccion` VARCHAR(255) NOT NULL COMMENT 'Dirección física del donador',
+    PRIMARY KEY (`id_donador`),
+    INDEX `idx_donador_nombre` (`nombre`),
+    INDEX `idx_donador_correo` (`correo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de donadores del sistema';
 
 -- ============================================
 -- TABLA: donacion
 -- Descripción: Almacena información de donaciones
 -- ============================================
-CREATE TABLE donacion (
-    id_donacion INTEGER PRIMARY KEY,
-    cantidad INTEGER NOT NULL,
-    destino VARCHAR(255) NOT NULL,
-    fecha_donacion DATE NOT NULL,
-    id_donador INTEGER NOT NULL,
-    CONSTRAINT fk_donacion_donador FOREIGN KEY (id_donador) 
-        REFERENCES donador(id_donador) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT chk_cantidad CHECK (cantidad > 0)
-);
-
--- Índices para donacion
-CREATE INDEX idx_donacion_donador ON donacion(id_donador);
-CREATE INDEX idx_donacion_fecha ON donacion(fecha_donacion);
-
--- Comentarios
-COMMENT ON TABLE donacion IS 'Tabla de donaciones realizadas';
-COMMENT ON COLUMN donacion.cantidad IS 'Cantidad de alimentos donados';
-COMMENT ON COLUMN donacion.destino IS 'Destino de la donación';
-
--- ============================================
--- TABLA: escuela
--- Descripción: Almacena información de escuelas
--- ============================================
-CREATE TABLE escuela (
-    id_escuela INTEGER PRIMARY KEY,
-    nombre VARCHAR(60) NOT NULL,
-    ubicacion VARCHAR(255) NOT NULL,
-    id_donacion INTEGER NOT NULL,
-    CONSTRAINT fk_escuela_donacion FOREIGN KEY (id_donacion) 
-        REFERENCES donacion(id_donacion) ON DELETE RESTRICT ON UPDATE RESTRICT
-);
-
--- Índices para escuela
-CREATE INDEX idx_escuela_nombre ON escuela(nombre);
-CREATE INDEX idx_escuela_donacion ON escuela(id_donacion);
-
--- Comentarios
-COMMENT ON TABLE escuela IS 'Tabla de escuelas beneficiarias';
-COMMENT ON COLUMN escuela.ubicacion IS 'Ubicación física de la escuela';
+DROP TABLE IF EXISTS `donacion`;
+CREATE TABLE `donacion` (
+    `id_donacion` INT NOT NULL AUTO_INCREMENT,
+    `cantidad` INT NOT NULL COMMENT 'Cantidad de alimentos donados',
+    `destino` VARCHAR(255) NOT NULL COMMENT 'Destino de la donación',
+    `fecha_donacion` DATE NOT NULL COMMENT 'Fecha en que se realizó la donación',
+    `id_donador` INT NOT NULL,
+    PRIMARY KEY (`id_donacion`),
+    INDEX `idx_donacion_donador` (`id_donador`),
+    INDEX `idx_donacion_fecha` (`fecha_donacion`),
+    CONSTRAINT `fk_donacion_donador` FOREIGN KEY (`id_donador`) 
+        REFERENCES `donador` (`id_donador`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `chk_cantidad` CHECK (`cantidad` > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de donaciones realizadas';
 
 -- ============================================
 -- TABLA: administrador
--- Descripción: Almacena información de administradores
+-- Descripción: Almacena información de administradores de la escuela
 -- ============================================
-CREATE TABLE administrador (
-    id_admi INTEGER PRIMARY KEY,
-    nombre VARCHAR(60) NOT NULL,
-    numero VARCHAR(10) NOT NULL,
-    correo VARCHAR(100) NOT NULL,
-    id_escuela INTEGER NOT NULL,
-    CONSTRAINT fk_administrador_escuela FOREIGN KEY (id_escuela) 
-        REFERENCES escuela(id_escuela) ON DELETE RESTRICT ON UPDATE RESTRICT
-);
-
--- Índices para administrador
-CREATE INDEX idx_administrador_nombre ON administrador(nombre);
-CREATE INDEX idx_administrador_escuela ON administrador(id_escuela);
-CREATE INDEX idx_administrador_correo ON administrador(correo);
-
--- Comentarios
-COMMENT ON TABLE administrador IS 'Tabla de administradores del sistema';
-COMMENT ON COLUMN administrador.numero IS 'Número de teléfono del administrador';
+DROP TABLE IF EXISTS `administrador`;
+CREATE TABLE `administrador` (
+    `id_admi` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre completo del administrador',
+    `numero` VARCHAR(10) NOT NULL COMMENT 'Número de teléfono',
+    `correo` VARCHAR(100) NOT NULL COMMENT 'Correo electrónico',
+    PRIMARY KEY (`id_admi`),
+    INDEX `idx_administrador_nombre` (`nombre`),
+    INDEX `idx_administrador_correo` (`correo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de administradores de la escuela';
 
 -- ============================================
 -- TABLA: alumno
--- Descripción: Almacena información de alumnos
+-- Descripción: Almacena información de alumnos beneficiarios
 -- ============================================
-CREATE TABLE alumno (
-    id_alumno INTEGER PRIMARY KEY,
-    nombre VARCHAR(60) NOT NULL,
-    apellido VARCHAR(60) NOT NULL,
-    grupo VARCHAR(10) NOT NULL,
-    cuatrimestre VARCHAR(10) NOT NULL,
-    matricula VARCHAR(7) NOT NULL UNIQUE,
-    id_escuela INTEGER NOT NULL
-);
-
--- Índices para alumno
-CREATE INDEX idx_alumno_nombre ON alumno(nombre, apellido);
-CREATE INDEX idx_alumno_matricula ON alumno(matricula);
-CREATE INDEX idx_alumno_grupo ON alumno(grupo);
-CREATE INDEX idx_alumno_escuela ON alumno(id_escuela);
-
--- Comentarios
-COMMENT ON TABLE alumno IS 'Tabla de alumnos beneficiarios';
-COMMENT ON COLUMN alumno.matricula IS 'Matrícula única del alumno';
-COMMENT ON COLUMN alumno.grupo IS 'Grupo al que pertenece el alumno';
-COMMENT ON COLUMN alumno.cuatrimestre IS 'Cuatrimestre actual del alumno';
+DROP TABLE IF EXISTS `alumno`;
+CREATE TABLE `alumno` (
+    `id_alumno` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre del alumno',
+    `apellido` VARCHAR(60) NOT NULL COMMENT 'Apellido del alumno',
+    `grupo` VARCHAR(10) NOT NULL COMMENT 'Grupo al que pertenece',
+    `cuatrimestre` VARCHAR(10) NOT NULL COMMENT 'Cuatrimestre actual',
+    `matricula` VARCHAR(7) NOT NULL COMMENT 'Matrícula única del alumno',
+    PRIMARY KEY (`id_alumno`),
+    UNIQUE KEY `uk_alumno_matricula` (`matricula`),
+    INDEX `idx_alumno_nombre` (`nombre`, `apellido`),
+    INDEX `idx_alumno_grupo` (`grupo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de alumnos beneficiarios';
 
 -- ============================================
 -- TABLA: comida
--- Descripción: Almacena información de alimentos
+-- Descripción: Almacena información de alimentos donados
 -- ============================================
-CREATE TABLE comida (
-    id_comida INTEGER PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    tipo_comida VARCHAR(50) NOT NULL,
-    fecha_caducidad DATE NOT NULL,
-    id_donacion INTEGER NOT NULL
-);
-
--- Índices para comida
-CREATE INDEX idx_comida_nombre ON comida(nombre);
-CREATE INDEX idx_comida_tipo ON comida(tipo_comida);
-CREATE INDEX idx_comida_fecha_caducidad ON comida(fecha_caducidad);
-CREATE INDEX idx_comida_donacion ON comida(id_donacion);
-
--- Comentarios
-COMMENT ON TABLE comida IS 'Catálogo de alimentos donados';
-COMMENT ON COLUMN comida.tipo_comida IS 'Tipo de alimento (bebida, snack, plato principal, etc.)';
-COMMENT ON COLUMN comida.fecha_caducidad IS 'Fecha de caducidad del alimento';
+DROP TABLE IF EXISTS `comida`;
+CREATE TABLE `comida` (
+    `id_comida` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(255) NOT NULL COMMENT 'Nombre del producto alimenticio',
+    `tipo_comida` VARCHAR(50) NOT NULL COMMENT 'Tipo o categoría del alimento',
+    `fecha_caducidad` DATE NOT NULL COMMENT 'Fecha de caducidad del producto',
+    `id_donacion` INT NOT NULL,
+    PRIMARY KEY (`id_comida`),
+    INDEX `idx_comida_nombre` (`nombre`),
+    INDEX `idx_comida_tipo` (`tipo_comida`),
+    INDEX `idx_comida_fecha_caducidad` (`fecha_caducidad`),
+    INDEX `idx_comida_donacion` (`id_donacion`),
+    CONSTRAINT `fk_comida_donacion` FOREIGN KEY (`id_donacion`) 
+        REFERENCES `donacion` (`id_donacion`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Catálogo de alimentos donados';
 
 -- ============================================
 -- TABLA: entrega
 -- Descripción: Almacena información de entregas
 -- ============================================
-CREATE TABLE entrega (
-    id_entrega INTEGER PRIMARY KEY,
-    estado VARCHAR(20) NOT NULL,
-    fecha_entrega DATE NOT NULL,
-    id_admin INTEGER NOT NULL,
-    id_donacion INTEGER NOT NULL,
-    CONSTRAINT fk_entrega_administrador FOREIGN KEY (id_admin) 
-        REFERENCES administrador(id_admi) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT fk_entrega_donacion FOREIGN KEY (id_donacion) 
-        REFERENCES donacion(id_donacion) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT chk_estado CHECK (estado IN ('pendiente', 'en_proceso', 'completada', 'cancelada'))
-);
-
--- Índices para entrega
-CREATE INDEX idx_entrega_fecha ON entrega(fecha_entrega);
-CREATE INDEX idx_entrega_estado ON entrega(estado);
-CREATE INDEX idx_entrega_admin ON entrega(id_admin);
-CREATE INDEX idx_entrega_donacion ON entrega(id_donacion);
-
--- Comentarios
-COMMENT ON TABLE entrega IS 'Tabla de entregas de donaciones';
-COMMENT ON COLUMN entrega.estado IS 'Estado de la entrega: pendiente, en_proceso, completada, cancelada';
+DROP TABLE IF EXISTS `entrega`;
+CREATE TABLE `entrega` (
+    `id_entrega` INT NOT NULL AUTO_INCREMENT,
+    `estado` VARCHAR(20) NOT NULL COMMENT 'Estado de la entrega: pendiente, en_proceso, completada, cancelada',
+    `fecha_entrega` DATE NOT NULL COMMENT 'Fecha programada o realizada de entrega',
+    `id_admin` INT NOT NULL,
+    `id_donacion` INT NOT NULL,
+    PRIMARY KEY (`id_entrega`),
+    INDEX `idx_entrega_fecha` (`fecha_entrega`),
+    INDEX `idx_entrega_estado` (`estado`),
+    INDEX `idx_entrega_admin` (`id_admin`),
+    INDEX `idx_entrega_donacion` (`id_donacion`),
+    CONSTRAINT `fk_entrega_administrador` FOREIGN KEY (`id_admin`) 
+        REFERENCES `administrador` (`id_admi`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_entrega_donacion` FOREIGN KEY (`id_donacion`) 
+        REFERENCES `donacion` (`id_donacion`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `chk_estado` CHECK (`estado` IN ('pendiente', 'en_proceso', 'completada', 'cancelada'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de entregas de donaciones';
 
 -- ============================================
 -- VISTAS
 -- ============================================
 
 -- Vista: Donaciones con información del donador
-CREATE VIEW v_donaciones_completas AS
+CREATE OR REPLACE VIEW `v_donaciones_completas` AS
 SELECT 
     d.id_donacion,
     d.cantidad,
@@ -199,117 +142,89 @@ SELECT
     d.fecha_donacion,
     don.nombre AS donador,
     don.correo AS correo_donador,
-    don.celular AS celular_donador
+    don.celular AS celular_donador,
+    don.direccion AS direccion_donador
 FROM donacion d
 JOIN donador don ON d.id_donador = don.id_donador
 ORDER BY d.fecha_donacion DESC;
 
 -- Vista: Entregas con detalles
-CREATE VIEW v_entregas_detalladas AS
+CREATE OR REPLACE VIEW `v_entregas_detalladas` AS
 SELECT 
     e.id_entrega,
     e.estado,
     e.fecha_entrega,
     a.nombre AS administrador,
     a.correo AS correo_admin,
-    esc.nombre AS escuela,
+    a.numero AS telefono_admin,
     d.cantidad AS cantidad_donacion,
-    d.destino
+    d.destino,
+    don.nombre AS donador
 FROM entrega e
 JOIN administrador a ON e.id_admin = a.id_admi
-JOIN escuela esc ON a.id_escuela = esc.id_escuela
 JOIN donacion d ON e.id_donacion = d.id_donacion
+JOIN donador don ON d.id_donador = don.id_donador
 ORDER BY e.fecha_entrega DESC;
 
--- Vista: Alumnos por escuela
-CREATE VIEW v_alumnos_por_escuela AS
+-- Vista: Lista de alumnos
+CREATE OR REPLACE VIEW `v_alumnos` AS
 SELECT 
     al.id_alumno,
-    al.nombre || ' ' || al.apellido AS alumno_completo,
+    CONCAT(al.nombre, ' ', al.apellido) AS alumno_completo,
     al.matricula,
     al.grupo,
-    al.cuatrimestre,
-    al.id_escuela
+    al.cuatrimestre
 FROM alumno al
-ORDER BY al.id_escuela, al.grupo, al.nombre;
+ORDER BY al.grupo, al.nombre;
 
 -- Vista: Comidas próximas a caducar (30 días)
-CREATE VIEW v_comidas_proximas_caducar AS
+CREATE OR REPLACE VIEW `v_comidas_proximas_caducar` AS
 SELECT 
     c.id_comida,
     c.nombre,
     c.tipo_comida,
     c.fecha_caducidad,
-    CURRENT_DATE - c.fecha_caducidad AS dias_hasta_caducidad,
+    DATEDIFF(c.fecha_caducidad, CURDATE()) AS dias_hasta_caducidad,
     d.destino,
-    d.cantidad
+    d.cantidad AS cantidad_donacion,
+    don.nombre AS donador
 FROM comida c
 JOIN donacion d ON c.id_donacion = d.id_donacion
-WHERE c.fecha_caducidad BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+JOIN donador don ON d.id_donador = don.id_donador
+WHERE c.fecha_caducidad BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
 ORDER BY c.fecha_caducidad ASC;
 
 -- ============================================
--- FUNCIONES Y TRIGGERS
+-- TRIGGERS
 -- ============================================
-
--- Función: Validar fecha de caducidad
-CREATE OR REPLACE FUNCTION validar_fecha_caducidad()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.fecha_caducidad < CURRENT_DATE THEN
-        RAISE EXCEPTION 'La fecha de caducidad no puede ser anterior a la fecha actual';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
 -- Trigger: Validar fecha de caducidad al insertar comida
-CREATE TRIGGER trg_validar_fecha_caducidad
-BEFORE INSERT OR UPDATE ON comida
+DELIMITER $$
+CREATE TRIGGER `trg_validar_fecha_caducidad_insert`
+BEFORE INSERT ON `comida`
 FOR EACH ROW
-EXECUTE FUNCTION validar_fecha_caducidad();
-
--- Función: Actualizar estado de entrega
-CREATE OR REPLACE FUNCTION actualizar_estado_entrega()
-RETURNS TRIGGER AS $$
 BEGIN
-    -- Log de cambio de estado
-    IF OLD.estado != NEW.estado THEN
-        RAISE NOTICE 'Estado de entrega % cambiado de % a %', NEW.id_entrega, OLD.estado, NEW.estado;
+    IF NEW.fecha_caducidad < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La fecha de caducidad no puede ser anterior a la fecha actual';
     END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+END$$
+DELIMITER ;
 
--- Trigger: Registrar cambios de estado
-CREATE TRIGGER trg_actualizar_estado_entrega
-AFTER UPDATE ON entrega
+-- Trigger: Validar fecha de caducidad al actualizar comida
+DELIMITER $$
+CREATE TRIGGER `trg_validar_fecha_caducidad_update`
+BEFORE UPDATE ON `comida`
 FOR EACH ROW
-EXECUTE FUNCTION actualizar_estado_entrega();
+BEGIN
+    IF NEW.fecha_caducidad < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La fecha de caducidad no puede ser anterior a la fecha actual';
+    END IF;
+END$$
+DELIMITER ;
 
--- ============================================
--- PERMISOS (Roles básicos)
--- ============================================
-
--- Crear roles
-CREATE ROLE bocaditos_admin;
-CREATE ROLE bocaditos_user;
-CREATE ROLE bocaditos_readonly;
-
--- Permisos para admin (todos)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO bocaditos_admin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO bocaditos_admin;
-
--- Permisos para usuarios (CRUD básico)
-GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO bocaditos_user;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO bocaditos_user;
-
--- Permisos para solo lectura
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO bocaditos_readonly;
-
--- ============================================
--- DATOS INICIALES (Opcional)
--- ============================================
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- Script completado
 SELECT 'Base de datos Bocaditos creada exitosamente' AS mensaje;

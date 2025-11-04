@@ -1,15 +1,17 @@
 # Bocaditos
-Repositorio académico para el modelado y gestión de base de datos del sistema de donaciones alimentarias en UTRM.
+Repositorio académico para el modelado y gestión de base de datos del sistema de donaciones alimentarias en UTRM (**una sola escuela**).
 
 ## 📋 Descripción del Proyecto
 
-**Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias que permite:
+**Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias de la Universidad Técnica Regional Metropolitana (UTRM) que permite:
 - Registrar donadores y sus donaciones
-- Gestionar entregas a escuelas beneficiarias
-- Administrar información de escuelas y sus administradores
+- Gestionar entregas a la escuela
+- Administrar información de administradores
 - Controlar inventario de alimentos con fechas de caducidad
 - Registrar alumnos beneficiarios
 - Generar reportes y estadísticas del programa de donaciones
+
+**Motor de Base de Datos**: MySQL/MariaDB
 
 ## 🗂️ Estructura del Repositorio
 
@@ -39,7 +41,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 **Ver**: [Modelado Lógico](./database/modelado-logico/README.md)
 
 ### ✅ Modelado Físico
-- Especificaciones técnicas de PostgreSQL
+- Especificaciones técnicas de MySQL/MariaDB
 - Definición de tablas, índices y constraints
 - Estrategias de optimización
 - Requerimientos de hardware
@@ -47,10 +49,10 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 **Ver**: [Modelado Físico](./database/modelado-fisico/README.md)
 
 ### ✅ Archivos SQL
-- **DDL**: Scripts de creación del esquema
-  - Tablas (7 entidades principales)
+- **DDL**: Scripts de creación del esquema MySQL
+  - Tablas (6 entidades para una escuela)
   - Vistas (4 vistas)
-  - Triggers y funciones (2 triggers, 2 funciones)
+  - Triggers (2 triggers)
   - Índices y constraints
 - **DML**: Scripts de datos
   - Datos iniciales de prueba
@@ -69,8 +71,8 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 ## 🚀 Inicio Rápido
 
 ### Requisitos
-- PostgreSQL 14 o superior
-- Cliente psql o herramienta de administración de BD
+- MySQL 8.0+ o MariaDB 10.4+
+- Cliente mysql o herramienta de administración de BD
 
 ### Instalación
 
@@ -82,30 +84,29 @@ cd Bocaditos/database
 
 2. **Crear la base de datos**
 ```bash
-psql -U postgres -f sql/ddl/01_create_schema.sql
+mysql -u root -p < sql/ddl/01_create_schema.sql
 ```
 
 3. **Cargar datos de prueba (opcional)**
 ```bash
-psql -U postgres -d bocaditos_db -f sql/dml/01_insert_data.sql
+mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ```
 
 4. **Verificar instalación**
 ```bash
-psql -U postgres -d bocaditos_db -c "\dt"
+mysql -u root -p bocaditos_db -e "SHOW TABLES;"
 ```
 
 ## 📊 Modelo de Datos
 
-El sistema gestiona las siguientes entidades principales:
+El sistema gestiona las siguientes entidades principales para **una escuela (UTRM)**:
 
 - **Donador**: Personas o instituciones donantes
 - **Donación**: Registro de donaciones
-- **Escuela**: Instituciones educativas beneficiarias
 - **Administrador**: Personal que gestiona entregas
 - **Alumno**: Estudiantes beneficiarios
 - **Comida**: Catálogo de alimentos donados
-- **Entrega**: Registro de entregas a escuelas
+- **Entrega**: Registro de entregas
 
 ## 📖 Documentación Completa
 
@@ -117,14 +118,16 @@ Para información detallada sobre la base de datos, consulta:
 
 ## 🛠️ Tecnologías
 
-- **Motor de Base de Datos**: PostgreSQL 14+
-- **Lenguaje**: SQL, PL/pgSQL
-- **Charset**: UTF-8
+- **Motor de Base de Datos**: MySQL 8.0+ / MariaDB 10.4+
+- **Lenguaje**: SQL
+- **Charset**: utf8mb4
+- **Storage Engine**: InnoDB
 - **Normalización**: 3FN (Tercera Forma Normal)
 
 ## 📝 Características Destacadas
 
-- ✅ Adaptado desde MySQL/MariaDB a PostgreSQL
+- ✅ Basado en esquema MySQL/MariaDB del cliente
+- ✅ Simplificado para una sola escuela
 - ✅ Integridad referencial completa
 - ✅ Triggers automáticos para validaciones
 - ✅ Vistas optimizadas para reportes

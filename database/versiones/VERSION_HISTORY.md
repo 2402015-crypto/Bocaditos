@@ -11,42 +11,47 @@ Este documento mantiene el registro de todas las versiones de la base de datos d
 **Tipo de Versión**: Inicial  
 
 ### Descripción
-Primera versión del esquema de base de datos para el sistema de donaciones alimentarias UTRM "Bocaditos". Adaptado desde el esquema MySQL/MariaDB original del cliente a PostgreSQL. Incluye todas las estructuras básicas necesarias para la operación del sistema de gestión de donaciones.
+Primera versión del esquema de base de datos para el sistema de donaciones alimentarias UTRM "Bocaditos". Implementado en **MySQL/MariaDB** según esquema original del cliente. Sistema diseñado para operar en **una sola escuela (UTRM)**.
 
 ### Componentes Incluidos
 
-#### Tablas Principales
+#### Tablas Principales (6 tablas)
 1. **donador** - Información de donadores (personas o instituciones)
 2. **donacion** - Registro de donaciones con cantidad y destino
-3. **escuela** - Instituciones educativas beneficiarias
-4. **administrador** - Personal que gestiona entregas en escuelas
-5. **alumno** - Estudiantes beneficiarios del programa
-6. **comida** - Catálogo de alimentos donados con fechas de caducidad
-7. **entrega** - Registro de entregas de donaciones
+3. **administrador** - Personal que gestiona entregas en la escuela
+4. **alumno** - Estudiantes beneficiarios del programa
+5. **comida** - Catálogo de alimentos donados con fechas de caducidad
+6. **entrega** - Registro de entregas de donaciones
+
+**Nota**: Simplificado para una sola escuela - eliminada tabla `escuela` y relaciones asociadas.
 
 #### Vistas
 1. **v_donaciones_completas** - Donaciones con información completa del donador
-2. **v_entregas_detalladas** - Detalles completos de entregas con administrador y escuela
-3. **v_alumnos_por_escuela** - Lista de alumnos organizados por escuela
+2. **v_entregas_detalladas** - Detalles completos de entregas con administrador y donación
+3. **v_alumnos** - Lista completa de alumnos
 4. **v_comidas_proximas_caducar** - Alimentos que caducarán en los próximos 30 días
 
-#### Funciones y Triggers
-1. **validar_fecha_caducidad()** - Validación de fechas de caducidad
-2. **actualizar_estado_entrega()** - Registro de cambios de estado en entregas
-3. **trg_validar_fecha_caducidad** - Trigger para validar fechas antes de insertar/actualizar comidas
-4. **trg_actualizar_estado_entrega** - Trigger para registrar cambios de estado
+#### Triggers
+1. **trg_validar_fecha_caducidad_insert** - Validación de fechas al insertar alimentos
+2. **trg_validar_fecha_caducidad_update** - Validación de fechas al actualizar alimentos
 
 #### Índices Implementados
-- Índices en claves primarias (automáticos)
+- AUTO_INCREMENT en claves primarias
 - Índices en claves foráneas para optimizar JOINs
 - Índices en campos de búsqueda frecuente (nombres, correos, fechas, estados)
-- Índices compuestos para consultas de búsqueda de alumnos
+- Índice UNIQUE en matrícula de alumnos
 
 #### Restricciones
-- Claves primarias en todas las tablas
+- Claves primarias en todas las tablas con AUTO_INCREMENT
 - Claves foráneas con integridad referencial (ON DELETE RESTRICT, ON UPDATE RESTRICT)
 - Constraints CHECK para validación de datos (cantidades positivas, estados válidos)
 - Valores únicos donde corresponde (matrícula de alumnos)
+
+### Motor de Base de Datos
+- **MySQL 8.0+ / MariaDB 10.4+**
+- **Storage Engine**: InnoDB
+- **Charset**: utf8mb4
+- **Collation**: utf8mb4_general_ci
 
 ### Archivos de la Versión
 - `/database/sql/ddl/01_create_schema.sql` - Definición completa del esquema
@@ -58,27 +63,26 @@ No aplica (versión inicial).
 
 ### Datos de Prueba
 - 5 donadores (fundaciones, comercios, asociaciones)
-- 5 donaciones registradas
-- 3 escuelas beneficiarias
-- 5 administradores
-- 12 alumnos en diferentes escuelas
+- 5 donaciones a UTRM
+- 5 administradores de la escuela
+- 12 alumnos de UTRM
 - 15 alimentos con fechas de caducidad
-- 5 entregas (completadas, en proceso, pendientes)
+- 5 entregas (completadas, en_proceso, pendientes)
 
-### Origen del Esquema
-- **Esquema Original**: MySQL/MariaDB (proporcionado por el cliente)
-- **Adaptación**: PostgreSQL 14+ con mejoras en:
-  - Validación automática de fechas de caducidad
-  - Registro de cambios de estado en entregas
-  - Vistas optimizadas para reportes
-  - Mejoras en integridad referencial
+### Esquema Base
+- **Motor**: MySQL/MariaDB (según esquema original del cliente)
+- **Simplificación**: Para una sola escuela (UTRM)
+- **Características**:
+  - Validación automática de fechas de caducidad con triggers
+  - Vistas optimizadas para reportes de donaciones y entregas
+  - Integridad referencial completa con InnoDB
 
 ### Requisitos del Sistema
-- PostgreSQL 14 o superior
-- Extensión uuid-ossp
-- Soporte para procedimientos almacenados (PL/pgSQL)
-- Mínimo 4GB RAM para desarrollo
-- Mínimo 16GB RAM para producción
+- MySQL 8.0+ o MariaDB 10.4+
+- Storage Engine: InnoDB
+- Charset: utf8mb4
+- Mínimo 2GB RAM para desarrollo
+- Mínimo 8GB RAM para producción
 
 ### Notas de Instalación
 1. Ejecutar `01_create_schema.sql` para crear la estructura
@@ -86,9 +90,10 @@ No aplica (versión inicial).
 3. Las consultas en `02_queries.sql` son opcionales y sirven como referencia
 
 ### Compatibilidad
-- PostgreSQL 14.x ✓
-- PostgreSQL 15.x ✓
-- PostgreSQL 16.x ✓
+- MySQL 8.0.x ✓
+- MySQL 8.1.x ✓
+- MariaDB 10.4.x ✓
+- MariaDB 10.5.x+ ✓
 
 ### Problemas Conocidos
 Ninguno reportado en esta versión.
