@@ -3,7 +3,7 @@ Repositorio académico para el modelado y gestión de base de datos del sistema 
 
 ## 📋 Descripción del Proyecto
 
-**Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias de la Universidad Técnica Regional Metropolitana (UTRM) que permite:
+**Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias de la Universidad Tecnológica de la Riviera Maya (UTRM) que permite:
 - Registrar donadores y sus donaciones
 - Almacenar información de la escuela (UTRM)
 - Gestionar entregas a la escuela
@@ -126,18 +126,6 @@ Para información detallada sobre la base de datos, consulta:
 - **Storage Engine**: InnoDB
 - **Normalización**: 3FN (Tercera Forma Normal)
 
-## 📝 Características Destacadas
-
-- ✅ Basado en esquema MySQL/MariaDB del cliente
-- ✅ Simplificado para una sola escuela
-- ✅ Integridad referencial completa
-- ✅ Triggers automáticos para validaciones
-- ✅ Vistas optimizadas para reportes
-- ✅ Índices en campos críticos
-- ✅ Consultas predefinidas para análisis
-- ✅ Control de versiones documentado
-- ✅ Datos de prueba incluidos
-- ✅ Gestión de fechas de caducidad de alimentos
 
 ## 🤝 Contribución
 
