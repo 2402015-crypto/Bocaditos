@@ -55,7 +55,26 @@ Storage Engine: InnoDB
 Descripción: Registra las donaciones realizadas con cantidad y destino (UTRM).
 ```
 
-### 3. administrador
+### 3. escuela
+```sql
+Nombre de tabla: escuela
+Columnas:
+- id_escuela: INT AUTO_INCREMENT PRIMARY KEY
+- nombre: VARCHAR(60) NOT NULL
+- ubicacion: VARCHAR(255) NOT NULL
+- id_donacion: INT NOT NULL
+
+Índices:
+- PK_escuela: PRIMARY KEY (id_escuela)
+- FK_escuela_donacion: FOREIGN KEY (id_donacion) REFERENCES donacion(id_donacion)
+- IDX_escuela_nombre: INDEX (nombre)
+- IDX_escuela_donacion: INDEX (id_donacion)
+
+Storage Engine: InnoDB
+Descripción: Información de la escuela beneficiaria (UTRM).
+```
+
+### 4. administrador
 ```sql
 Nombre de tabla: administrador
 Columnas:
@@ -63,18 +82,20 @@ Columnas:
 - nombre: VARCHAR(60) NOT NULL
 - numero: VARCHAR(10) NOT NULL
 - correo: VARCHAR(100) NOT NULL
+- id_escuela: INT NOT NULL
 
 Índices:
 - PK_administrador: PRIMARY KEY (id_admi)
+- FK_administrador_escuela: FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela)
 - IDX_administrador_nombre: INDEX (nombre)
 - IDX_administrador_correo: INDEX (correo)
+- IDX_administrador_escuela: INDEX (id_escuela)
 
 Storage Engine: InnoDB
 Descripción: Personal administrativo de la escuela que gestiona las donaciones.
-Nota: Simplificado para una sola escuela - no tiene FK a tabla escuela.
 ```
 
-### 4. alumno
+### 5. alumno
 ```sql
 Nombre de tabla: alumno
 Columnas:
@@ -84,32 +105,21 @@ Columnas:
 - grupo: VARCHAR(10) NOT NULL
 - cuatrimestre: VARCHAR(10) NOT NULL
 - matricula: VARCHAR(7) NOT NULL UNIQUE
-- grupo: VARCHAR(10) NOT NULL
-- cuatrimestre: VARCHAR(10) NOT NULL
-- matricula: VARCHAR(7) NOT NULL UNIQUE
-- id_escuela: INTEGER NOT NULL
+- id_escuela: INT NOT NULL
 
 Índices:
 - PK_alumno: PRIMARY KEY (id_alumno)
+- FK_alumno_escuela: FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela)
 - UK_alumno_matricula: UNIQUE (matricula)
 - IDX_alumno_nombre: INDEX (nombre, apellido)
-- IDX_alumno_matricula: INDEX (matricula)
 - IDX_alumno_grupo: INDEX (grupo)
 - IDX_alumno_escuela: INDEX (id_escuela)
 
-
-Índices:
-- PK_alumno: PRIMARY KEY (id_alumno)
-- UK_alumno_matricula: UNIQUE (matricula)
-- IDX_alumno_nombre: INDEX (nombre, apellido)
-- IDX_alumno_grupo: INDEX (grupo)
-
 Storage Engine: InnoDB
 Descripción: Estudiantes beneficiarios del programa de donaciones.
-Nota: Simplificado para una sola escuela - no tiene FK a tabla escuela.
 ```
 
-### 5. comida
+### 6. comida
 ```sql
 Nombre de tabla: comida
 Columnas:
@@ -131,7 +141,7 @@ Storage Engine: InnoDB
 Descripción: Catálogo de alimentos incluidos en las donaciones.
 ```
 
-### 6. entrega
+### 7. entrega
 ```sql
 Nombre de tabla: entrega
 Columnas:
@@ -163,10 +173,10 @@ Descripción: Registro de entregas de donaciones a la escuela.
 Combina información de donaciones con datos del donador para consultas rápidas.
 
 ### 2. v_entregas_detalladas
-Presenta un resumen completo de cada entrega con información del administrador y donación.
+Presenta un resumen completo de cada entrega con información del administrador, escuela y donación.
 
-### 3. v_alumnos
-Lista de alumnos completa para reportes administrativos.
+### 3. v_alumnos_por_escuela
+Lista de alumnos organizados por escuela para reportes administrativos.
 
 ### 4. v_comidas_proximas_caducar
 Alerta sobre alimentos que caducarán en los próximos 30 días.

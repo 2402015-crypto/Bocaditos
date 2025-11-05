@@ -19,32 +19,36 @@ Este documento describe el modelo lógico de la base de datos para el sistema de
 - fecha_donacion: Fecha en que se realizó la donación
 - id_donador (FK): Referencia al donador
 
-### 3. Administrador
+### 3. Escuela
+- **id_escuela** (PK): Identificador único de la escuela (AUTO_INCREMENT)
+- nombre: Nombre de la institución educativa (UTRM)
+- ubicacion: Dirección física de la escuela
+- id_donacion (FK): Referencia a la donación recibida
+
+### 4. Administrador
 - **id_admi** (PK): Identificador único del administrador (AUTO_INCREMENT)
 - nombre: Nombre completo del administrador
 - numero: Número de teléfono
 - correo: Correo electrónico
+- id_escuela (FK): Referencia a la escuela donde trabaja
 
-**Nota**: Simplificado para una sola escuela - no hay relación con tabla de escuela
-
-### 4. Alumno
+### 5. Alumno
 - **id_alumno** (PK): Identificador único del alumno (AUTO_INCREMENT)
 - nombre: Nombre del alumno
 - apellido: Apellido del alumno
 - grupo: Grupo al que pertenece
 - cuatrimestre: Cuatrimestre actual
 - matricula: Matrícula única del alumno
+- id_escuela (FK): Referencia a la escuela
 
-**Nota**: Simplificado para una sola escuela - no hay relación con tabla de escuela
-
-### 5. Comida
+### 6. Comida
 - **id_comida** (PK): Identificador único del alimento (AUTO_INCREMENT)
 - nombre: Nombre del producto alimenticio
 - tipo_comida: Tipo o categoría del alimento
 - fecha_caducidad: Fecha de caducidad del producto
 - id_donacion (FK): Referencia a la donación
 
-### 6. Entrega
+### 7. Entrega
 - **id_entrega** (PK): Identificador único de la entrega (AUTO_INCREMENT)
 - estado: Estado actual de la entrega
 - fecha_entrega: Fecha programada o realizada de entrega
@@ -54,37 +58,45 @@ Este documento describe el modelo lógico de la base de datos para el sistema de
 ## Relaciones
 
 1. **Donador - Donacion**: Relación 1:N (Un donador puede realizar múltiples donaciones)
-2. **Donacion - Comida**: Relación 1:N (Una donación contiene múltiples alimentos)
-3. **Administrador - Entrega**: Relación 1:N (Un administrador gestiona varias entregas)
-4. **Donacion - Entrega**: Relación 1:N (Una donación puede tener múltiples entregas)
-
-**Nota**: La tabla `alumno` es independiente ya que el sistema está diseñado para una sola escuela.
+2. **Donacion - Escuela**: Relación 1:N (Una donación puede ir a múltiples escuelas)
+3. **Escuela - Administrador**: Relación 1:N (Una escuela tiene varios administradores)
+4. **Escuela - Alumno**: Relación 1:N (Una escuela tiene múltiples alumnos)
+5. **Administrador - Entrega**: Relación 1:N (Un administrador gestiona varias entregas)
+6. **Donacion - Entrega**: Relación 1:N (Una donación puede tener múltiples entregas)
+7. **Donacion - Comida**: Relación 1:N (Una donación contiene múltiples alimentos)
 
 ## Reglas de Negocio
 
 1. Cada donación debe estar asociada a un donador
-2. El sistema gestiona donaciones para una sola escuela (UTRM)
+2. El sistema gestiona donaciones para la escuela UTRM
 3. Los administradores gestionan las entregas de la escuela
 4. Las entregas tienen estados: pendiente, en_proceso, completada, cancelada
 5. Los alimentos tienen fecha de caducidad que debe ser validada
 6. Cada alumno tiene una matrícula única
 7. Los alumnos están organizados por grupos y cuatrimestres
+8. La tabla escuela almacena la información de UTRM
 
 ## Diagrama Entidad-Relación
 
 ```
-[Donador] 1----N [Donacion]
-                     |
-                     |
-                     1
-                     |
-                     N
-                     |
-                [Comida]
+[Donador] 1----N [Donacion] 1----N [Escuela]
+                     |                  |
+                     |                  |
+                     |                  1
+                     |                  |
+                     |             [Administrador]
+                     |                  |
+                     |                  |
+                     |                  1
+                     |                  |
+                     N                  N
+                     |                  |
+                [Entrega]----------[Entrega]
+                
+[Donacion] 1----N [Comida]
 
-[Administrador] 1----N [Entrega] N----1 [Donacion]
-
-[Alumno] (Tabla independiente para gestión de beneficiarios)
+[Escuela] 1----N [Alumno]
+```
 ```
 
 ## Normalización
@@ -93,19 +105,6 @@ El modelo se encuentra en Tercera Forma Normal (3FN):
 - **Primera Forma Normal (1FN)**: ✓ Todos los atributos contienen valores atómicos
 - **Segunda Forma Normal (2FN)**: ✓ Todos los atributos no clave dependen de la clave primaria completa
 - **Tercera Forma Normal (3FN)**: ✓ No existen dependencias transitivas
-
-## Simplificaciones para Una Sola Escuela
-
-En comparación con un sistema multi-escuela, se han eliminado:
-1. La tabla `escuela` - ya que solo hay una escuela (UTRM)
-2. Las relaciones entre `administrador` y `escuela`
-3. Las relaciones entre `alumno` y `escuela`
-4. La complejidad de gestionar múltiples instituciones
-
-Esto simplifica:
-- Las consultas (no requieren filtros por escuela)
-- La administración (todos los datos son de la misma institución)
-- El mantenimiento (menos tablas y relaciones)
 
 ## Tipos de Datos (MySQL/MariaDB)
 

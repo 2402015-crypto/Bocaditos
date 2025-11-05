@@ -59,7 +59,7 @@ Describe la implementación física en MySQL/MariaDB:
 
 Scripts para crear la estructura de la base de datos:
 - `01_create_schema.sql`: Creación completa del esquema MySQL
-  - Tablas (6 tablas para una escuela)
+  - Tablas (7 tablas: donador, donacion, escuela, administrador, alumno, comida, entrega)
   - Índices
   - Constraints
   - Triggers
@@ -152,32 +152,40 @@ mysql -u root -p bocaditos_db < sql/dml/02_queries.sql
 
 ## Entidades Principales
 
-El sistema maneja las siguientes entidades para **una sola escuela (UTRM)**:
+El sistema maneja las siguientes entidades:
 
 1. **Donador**: Personas o instituciones que realizan donaciones
 2. **Donación**: Registro de donaciones con cantidad y destino
-3. **Administrador**: Personal que gestiona entregas en la escuela
-4. **Alumno**: Estudiantes beneficiarios del programa
-5. **Comida**: Catálogo de alimentos donados
-6. **Entrega**: Registro de entregas de donaciones
+3. **Escuela**: Información de la institución educativa (UTRM)
+4. **Administrador**: Personal que gestiona entregas en la escuela
+5. **Alumno**: Estudiantes beneficiarios del programa
+6. **Comida**: Catálogo de alimentos donados
+7. **Entrega**: Registro de entregas de donaciones
 
-## Diagrama Simplificado (Una Escuela)
+## Diagrama Simplificado
 
 ```
-┌─────────┐       ┌──────────┐
-│ Donador │──1:N──│ Donación │
-└─────────┘       └────┬─────┘
-                       │
-                       │
-                      1:N
-                       │
-                  ┌────▼────┐
-                  │ Comida  │
-                  └─────────┘
+┌─────────┐       ┌──────────┐       ┌─────────┐
+│ Donador │──1:N──│ Donación │──1:N──│ Escuela │
+└─────────┘       └────┬─────┘       └────┬────┘
+                       │                   │
+                       │                   │
+                      1:N                 1:N
+                       │                   │
+                  ┌────▼────┐         ┌────▼──────┐
+                  │ Comida  │         │Administrador│
+                  └─────────┘         └────┬───────┘
+                                           │
+                                          1:N
+                                           │
+                                      ┌────▼────┐
+                                      │ Entrega │
+                                      └─────────┘
 
-[Administrador] 1----N [Entrega] N----1 [Donacion]
-
-[Alumno] (Tabla independiente - todos de UTRM)
+┌─────────┐
+│ Escuela │──1:N──┌────────┐
+└─────────┘       │ Alumno │
+                  └────────┘
 ```
 
 ## Funcionalidades Implementadas
@@ -188,8 +196,8 @@ El sistema maneja las siguientes entidades para **una sola escuela (UTRM)**:
 
 ### Vistas Útiles
 1. **v_donaciones_completas**: Donaciones con información del donador
-2. **v_entregas_detalladas**: Detalles completos de entregas
-3. **v_alumnos**: Lista completa de alumnos
+2. **v_entregas_detalladas**: Detalles completos de entregas con escuela
+3. **v_alumnos_por_escuela**: Lista de alumnos organizados por escuela
 4. **v_comidas_proximas_caducar**: Alimentos próximos a vencer
 
 ### Consultas Predefinidas

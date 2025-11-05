@@ -54,6 +54,23 @@ CREATE TABLE `donacion` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de donaciones realizadas';
 
 -- ============================================
+-- TABLA: escuela
+-- Descripción: Almacena información de la escuela (UTRM)
+-- ============================================
+DROP TABLE IF EXISTS `escuela`;
+CREATE TABLE `escuela` (
+    `id_escuela` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre de la institución educativa',
+    `ubicacion` VARCHAR(255) NOT NULL COMMENT 'Dirección física de la escuela',
+    `id_donacion` INT NOT NULL,
+    PRIMARY KEY (`id_escuela`),
+    INDEX `idx_escuela_nombre` (`nombre`),
+    INDEX `idx_escuela_donacion` (`id_donacion`),
+    CONSTRAINT `fk_escuela_donacion` FOREIGN KEY (`id_donacion`) 
+        REFERENCES `donacion` (`id_donacion`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de la escuela beneficiaria (UTRM)';
+
+-- ============================================
 -- TABLA: administrador
 -- Descripción: Almacena información de administradores de la escuela
 -- ============================================
@@ -63,9 +80,13 @@ CREATE TABLE `administrador` (
     `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre completo del administrador',
     `numero` VARCHAR(10) NOT NULL COMMENT 'Número de teléfono',
     `correo` VARCHAR(100) NOT NULL COMMENT 'Correo electrónico',
+    `id_escuela` INT NOT NULL,
     PRIMARY KEY (`id_admi`),
     INDEX `idx_administrador_nombre` (`nombre`),
-    INDEX `idx_administrador_correo` (`correo`)
+    INDEX `idx_administrador_correo` (`correo`),
+    INDEX `idx_administrador_escuela` (`id_escuela`),
+    CONSTRAINT `fk_administrador_escuela` FOREIGN KEY (`id_escuela`) 
+        REFERENCES `escuela` (`id_escuela`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de administradores de la escuela';
 
 -- ============================================
@@ -80,10 +101,14 @@ CREATE TABLE `alumno` (
     `grupo` VARCHAR(10) NOT NULL COMMENT 'Grupo al que pertenece',
     `cuatrimestre` VARCHAR(10) NOT NULL COMMENT 'Cuatrimestre actual',
     `matricula` VARCHAR(7) NOT NULL COMMENT 'Matrícula única del alumno',
+    `id_escuela` INT NOT NULL,
     PRIMARY KEY (`id_alumno`),
     UNIQUE KEY `uk_alumno_matricula` (`matricula`),
     INDEX `idx_alumno_nombre` (`nombre`, `apellido`),
-    INDEX `idx_alumno_grupo` (`grupo`)
+    INDEX `idx_alumno_grupo` (`grupo`),
+    INDEX `idx_alumno_escuela` (`id_escuela`),
+    CONSTRAINT `fk_alumno_escuela` FOREIGN KEY (`id_escuela`) 
+        REFERENCES `escuela` (`id_escuela`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de alumnos beneficiarios';
 
 -- ============================================
@@ -157,25 +182,31 @@ SELECT
     a.nombre AS administrador,
     a.correo AS correo_admin,
     a.numero AS telefono_admin,
+    esc.nombre AS escuela,
+    esc.ubicacion AS ubicacion_escuela,
     d.cantidad AS cantidad_donacion,
     d.destino,
     don.nombre AS donador
 FROM entrega e
 JOIN administrador a ON e.id_admin = a.id_admi
+JOIN escuela esc ON a.id_escuela = esc.id_escuela
 JOIN donacion d ON e.id_donacion = d.id_donacion
 JOIN donador don ON d.id_donador = don.id_donador
 ORDER BY e.fecha_entrega DESC;
 
--- Vista: Lista de alumnos
-CREATE OR REPLACE VIEW `v_alumnos` AS
+-- Vista: Lista de alumnos por escuela
+CREATE OR REPLACE VIEW `v_alumnos_por_escuela` AS
 SELECT 
     al.id_alumno,
     CONCAT(al.nombre, ' ', al.apellido) AS alumno_completo,
     al.matricula,
     al.grupo,
-    al.cuatrimestre
+    al.cuatrimestre,
+    esc.nombre AS escuela,
+    esc.ubicacion AS ubicacion_escuela
 FROM alumno al
-ORDER BY al.grupo, al.nombre;
+JOIN escuela esc ON al.id_escuela = esc.id_escuela
+ORDER BY esc.nombre, al.grupo, al.nombre;
 
 -- Vista: Comidas próximas a caducar (30 días)
 CREATE OR REPLACE VIEW `v_comidas_proximas_caducar` AS

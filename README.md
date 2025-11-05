@@ -1,10 +1,11 @@
 # Bocaditos
-Repositorio académico para el modelado y gestión de base de datos del sistema de donaciones alimentarias en UTRM (**una sola escuela**).
+Repositorio académico para el modelado y gestión de base de datos del sistema de donaciones alimentarias en UTRM.
 
 ## 📋 Descripción del Proyecto
 
 **Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias de la Universidad Técnica Regional Metropolitana (UTRM) que permite:
 - Registrar donadores y sus donaciones
+- Almacenar información de la escuela (UTRM)
 - Gestionar entregas a la escuela
 - Administrar información de administradores
 - Controlar inventario de alimentos con fechas de caducidad
@@ -50,7 +51,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 ### ✅ Archivos SQL
 - **DDL**: Scripts de creación del esquema MySQL
-  - Tablas (6 entidades para una escuela)
+  - Tablas (7 entidades: donador, donacion, escuela, administrador, alumno, comida, entrega)
   - Vistas (4 vistas)
   - Triggers (2 triggers)
   - Índices y constraints
@@ -99,10 +100,11 @@ mysql -u root -p bocaditos_db -e "SHOW TABLES;"
 
 ## 📊 Modelo de Datos
 
-El sistema gestiona las siguientes entidades principales para **una escuela (UTRM)**:
+El sistema gestiona las siguientes entidades principales:
 
 - **Donador**: Personas o instituciones donantes
 - **Donación**: Registro de donaciones
+- **Escuela**: Información de la institución educativa (UTRM)
 - **Administrador**: Personal que gestiona entregas
 - **Alumno**: Estudiantes beneficiarios
 - **Comida**: Catálogo de alimentos donados

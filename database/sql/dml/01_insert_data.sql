@@ -32,31 +32,37 @@ INSERT INTO `donacion` (`cantidad`, `destino`, `fecha_donacion`, `id_donador`) V
 (600, 'Universidad Técnica Regional Metropolitana', '2025-11-03', 5);
 
 -- ============================================
+-- ESCUELA
+-- ============================================
+INSERT INTO `escuela` (`nombre`, `ubicacion`, `id_donacion`) VALUES
+('Universidad Técnica Regional Metropolitana', 'Blvd. Universitario 1500, Campus Norte', 1);
+
+-- ============================================
 -- ADMINISTRADORES
 -- ============================================
-INSERT INTO `administrador` (`nombre`, `numero`, `correo`) VALUES
-('Ana Martínez Sánchez', '5558901234', 'ana.martinez@utrm.edu.mx'),
-('Laura Pérez Domínguez', '5550123456', 'laura.perez@utrm.edu.mx'),
-('Carlos Gómez Rivera', '5559012345', 'carlos.gomez@utrm.edu.mx'),
-('María González Torres', '5557890123', 'maria.gonzalez@utrm.edu.mx'),
-('Roberto Hernández López', '5556789012', 'roberto.hernandez@utrm.edu.mx');
+INSERT INTO `administrador` (`nombre`, `numero`, `correo`, `id_escuela`) VALUES
+('Ana Martínez Sánchez', '5558901234', 'ana.martinez@utrm.edu.mx', 1),
+('Laura Pérez Domínguez', '5550123456', 'laura.perez@utrm.edu.mx', 1),
+('Carlos Gómez Rivera', '5559012345', 'carlos.gomez@utrm.edu.mx', 1),
+('María González Torres', '5557890123', 'maria.gonzalez@utrm.edu.mx', 1),
+('Roberto Hernández López', '5556789012', 'roberto.hernandez@utrm.edu.mx', 1);
 
 -- ============================================
 -- ALUMNOS
 -- ============================================
-INSERT INTO `alumno` (`nombre`, `apellido`, `grupo`, `cuatrimestre`, `matricula`) VALUES
-('Valentina', 'Torres Díaz', 'A', '1ro', '2023001'),
-('Andrés', 'Díaz Morales', 'B', '2do', '2023002'),
-('Isabella', 'Morales Castro', 'A', '3ro', '2023003'),
-('Mateo', 'Castro Ruiz', 'C', '4to', '2023004'),
-('Camila', 'Ruiz Herrera', 'B', '5to', '2023005'),
-('Santiago', 'Herrera Vega', 'A', '6to', '2023006'),
-('Sofía', 'Vega Mendoza', 'C', '1ro', '2023007'),
-('Lucas', 'Mendoza Silva', 'B', '2do', '2023008'),
-('Emma', 'Silva Rojas', 'A', '3ro', '2023009'),
-('Sebastián', 'Rojas Ortiz', 'C', '4to', '2023010'),
-('Martina', 'Ortiz Ramos', 'B', '5to', '2023011'),
-('Diego', 'Ramos Flores', 'A', '6to', '2023012');
+INSERT INTO `alumno` (`nombre`, `apellido`, `grupo`, `cuatrimestre`, `matricula`, `id_escuela`) VALUES
+('Valentina', 'Torres Díaz', 'A', '1ro', '2023001', 1),
+('Andrés', 'Díaz Morales', 'B', '2do', '2023002', 1),
+('Isabella', 'Morales Castro', 'A', '3ro', '2023003', 1),
+('Mateo', 'Castro Ruiz', 'C', '4to', '2023004', 1),
+('Camila', 'Ruiz Herrera', 'B', '5to', '2023005', 1),
+('Santiago', 'Herrera Vega', 'A', '6to', '2023006', 1),
+('Sofía', 'Vega Mendoza', 'C', '1ro', '2023007', 1),
+('Lucas', 'Mendoza Silva', 'B', '2do', '2023008', 1),
+('Emma', 'Silva Rojas', 'A', '3ro', '2023009', 1),
+('Sebastián', 'Rojas Ortiz', 'C', '4to', '2023010', 1),
+('Martina', 'Ortiz Ramos', 'B', '5to', '2023011', 1),
+('Diego', 'Ramos Flores', 'A', '6to', '2023012', 1);
 
 -- ============================================
 -- COMIDAS
@@ -98,6 +104,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 SELECT 'Donadores insertados:' AS tipo, COUNT(*) AS cantidad FROM donador
 UNION ALL
 SELECT 'Donaciones registradas:', COUNT(*) FROM donacion
+UNION ALL
+SELECT 'Escuela registrada:', COUNT(*) FROM escuela
 UNION ALL
 SELECT 'Administradores insertados:', COUNT(*) FROM administrador
 UNION ALL

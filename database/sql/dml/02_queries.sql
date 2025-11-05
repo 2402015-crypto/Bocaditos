@@ -34,10 +34,13 @@ SELECT
     a.nombre AS administrador,
     a.correo AS correo_admin,
     a.numero AS telefono_admin,
+    esc.nombre AS escuela,
+    esc.ubicacion,
     d.cantidad,
     d.destino
 FROM entrega e
 JOIN administrador a ON e.id_admin = a.id_admi
+JOIN escuela esc ON a.id_escuela = esc.id_escuela
 JOIN donacion d ON e.id_donacion = d.id_donacion
 WHERE e.estado IN ('pendiente', 'en_proceso')
 ORDER BY e.fecha_entrega ASC;
@@ -55,14 +58,16 @@ LEFT JOIN donacion d ON don.id_donador = d.id_donador
 GROUP BY don.id_donador, don.nombre, don.correo
 ORDER BY total_donaciones DESC, cantidad_total DESC;
 
--- Reporte 4: Alumnos por grupo
+-- Reporte 4: Alumnos por escuela y grupo
 SELECT 
+    esc.nombre AS escuela,
     al.grupo,
     al.cuatrimestre,
     COUNT(al.id_alumno) AS total_alumnos
 FROM alumno al
-GROUP BY al.grupo, al.cuatrimestre
-ORDER BY al.cuatrimestre, al.grupo;
+JOIN escuela esc ON al.id_escuela = esc.id_escuela
+GROUP BY esc.nombre, al.grupo, al.cuatrimestre
+ORDER BY esc.nombre, al.cuatrimestre, al.grupo;
 
 -- Reporte 5: Inventario de comidas por tipo
 SELECT 
@@ -95,13 +100,15 @@ ORDER BY c.fecha_caducidad ASC;
 SELECT 
     a.nombre AS administrador,
     a.correo,
+    esc.nombre AS escuela,
     COUNT(e.id_entrega) AS total_entregas,
     COUNT(CASE WHEN e.estado = 'completada' THEN 1 END) AS entregas_completadas,
     COUNT(CASE WHEN e.estado = 'en_proceso' THEN 1 END) AS entregas_en_proceso,
     COUNT(CASE WHEN e.estado = 'pendiente' THEN 1 END) AS entregas_pendientes
 FROM administrador a
+LEFT JOIN escuela esc ON a.id_escuela = esc.id_escuela
 LEFT JOIN entrega e ON a.id_admi = e.id_admin
-GROUP BY a.id_admi, a.nombre, a.correo
+GROUP BY a.id_admi, a.nombre, a.correo, esc.nombre
 ORDER BY total_entregas DESC;
 
 -- Reporte 8: Donaciones por mes
@@ -140,22 +147,26 @@ FROM entrega e
 JOIN donacion d ON e.id_donacion = d.id_donacion
 WHERE e.estado = 'completada';
 
--- Consulta 3: Alumnos por cuatrimestre
+-- Consulta 3: Alumnos por cuatrimestre y escuela
 SELECT 
+    esc.nombre AS escuela,
     al.cuatrimestre,
     COUNT(al.id_alumno) AS total_alumnos
 FROM alumno al
-GROUP BY al.cuatrimestre
-ORDER BY al.cuatrimestre;
+JOIN escuela esc ON al.id_escuela = esc.id_escuela
+GROUP BY esc.nombre, al.cuatrimestre
+ORDER BY esc.nombre, al.cuatrimestre;
 
--- Consulta 4: Lista completa de alumnos
+-- Consulta 4: Lista completa de alumnos con escuela
 SELECT 
     al.matricula,
     CONCAT(al.nombre, ' ', al.apellido) AS alumno_completo,
     al.grupo,
-    al.cuatrimestre
+    al.cuatrimestre,
+    esc.nombre AS escuela
 FROM alumno al
-ORDER BY al.cuatrimestre, al.grupo, al.nombre;
+JOIN escuela esc ON al.id_escuela = esc.id_escuela
+ORDER BY esc.nombre, al.cuatrimestre, al.grupo, al.nombre;
 
 -- ============================================
 -- CONSULTAS DE ANÁLISIS
@@ -205,12 +216,14 @@ ORDER BY total_alumnos DESC;
 SELECT 
     e.fecha_entrega,
     e.estado,
+    esc.nombre AS escuela,
     a.nombre AS administrador_responsable,
     a.numero AS telefono_contacto,
     d.cantidad,
     don.nombre AS donador
 FROM entrega e
 JOIN administrador a ON e.id_admin = a.id_admi
+JOIN escuela esc ON a.id_escuela = esc.id_escuela
 JOIN donacion d ON e.id_donacion = d.id_donacion
 JOIN donador don ON d.id_donador = don.id_donador
 WHERE e.fecha_entrega >= CURDATE()
