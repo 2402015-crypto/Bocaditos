@@ -4,8 +4,6 @@
 -- Versión: 1.0.0
 -- Fecha: 2025-11-04
 -- Motor: MySQL/MariaDB
--- Basado en: Esquema original del cliente
--- Adaptado para: Una sola escuela
 -- ============================================
 
 SET NAMES utf8mb4;
