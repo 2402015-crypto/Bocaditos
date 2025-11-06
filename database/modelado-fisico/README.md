@@ -1,7 +1,7 @@
 # Modelado Físico de Base de Datos - Sistema Bocaditos
 
 ## Descripción General
-Este documento describe el modelo físico de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM, implementado en **MySQL/MariaDB**. Sistema diseñado para operar en **una sola escuela**.
+Este documento describe el modelo físico de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM, implementado en **MySQL/MariaDB**.
 
 ## Especificaciones Técnicas
 
