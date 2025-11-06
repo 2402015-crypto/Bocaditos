@@ -1,7 +1,7 @@
 # Base de Datos - Sistema Bocaditos
 
 ## Descripción
-Este directorio contiene el **repositorio completo de base de datos** para el sistema de donaciones alimentarias "Bocaditos" de UTRM. Este sistema gestiona donaciones de alimentos para **una sola escuela**, incluyendo donadores, entregas, administradores y alumnos beneficiarios. Incluye modelado lógico, modelado físico, archivos SQL y control de versiones documentado.
+Este directorio contiene el **repositorio completo de base de datos** para el sistema de donaciones alimentarias "Bocaditos" de UTRM. Este sistema gestiona donaciones de alimentos incluyendo donadores, entregas, administradores y alumnos beneficiarios. Incluye modelado lógico, modelado físico, archivos SQL y control de versiones documentado.
 
 **Motor de Base de Datos**: MySQL/MariaDB
 **Basado en**: Esquema original del cliente adaptado para una escuela
