@@ -1,7 +1,7 @@
 # Modelado Lógico de Base de Datos - Sistema Bocaditos
 
 ## Descripción General
-Este documento describe el modelo lógico de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM, basado en el esquema MySQL/MariaDB original del cliente. Sistema diseñado para operar en **una sola escuela**.
+Este documento describe el modelo lógico de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM, basado en el esquema MySQL/MariaDB.
 
 ## Entidades Principales
 
