@@ -1,7 +1,7 @@
 # Bocaditos
-Repositorio académico para el modelado y gestión de base de datos del sistema de donaciones alimentarias en UTRM.
+Este repositorio contiene el modelado lógico y físico, archivos SQL y versiones documentadas del proyecto Bocaditos
 
-## 📋 Descripción del Proyecto
+**Descripción del Proyecto**
 
 **Bocaditos** es un sistema de gestión para el programa de donaciones alimentarias de la Universidad Tecnológica de la Riviera Maya (UTRM) que permite:
 - Registrar donadores y sus donaciones
@@ -14,7 +14,7 @@ Repositorio académico para el modelado y gestión de base de datos del sistema 
 
 **Motor de Base de Datos**: MySQL/MariaDB
 
-## 🗂️ Estructura del Repositorio
+## Estructura del Repositorio
 
 ```
 Bocaditos/
@@ -29,11 +29,11 @@ Bocaditos/
 └── README.md                    # Este archivo
 ```
 
-## 🎯 Repositorio de Base de Datos
+## Repositorio de Base de Datos
 
 El directorio `/database` contiene el repositorio completo de base de datos con:
 
-### ✅ Modelado Lógico
+### Modelado Lógico
 - Diagrama Entidad-Relación
 - Descripción de entidades y relaciones
 - Reglas de negocio
@@ -41,7 +41,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 **Ver**: [Modelado Lógico](./database/modelado-logico/README.md)
 
-### ✅ Modelado Físico
+### Modelado Físico
 - Especificaciones técnicas de MySQL/MariaDB
 - Definición de tablas, índices y constraints
 - Estrategias de optimización
@@ -49,7 +49,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 **Ver**: [Modelado Físico](./database/modelado-fisico/README.md)
 
-### ✅ Archivos SQL
+### Archivos SQL
 - **DDL**: Scripts de creación del esquema MySQL
   - Tablas (7 entidades: donador, donacion, escuela, administrador, alumno, comida, entrega)
   - Vistas (4 vistas)
@@ -61,7 +61,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 **Ver**: [Archivos SQL](./database/sql/)
 
-### ✅ Versiones Documentadas
+### Versiones Documentadas
 - Versión actual: **1.0.0**
 - Historial completo de cambios
 - Política de versionado semántico
@@ -69,7 +69,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 **Ver**: [Control de Versiones](./database/versiones/VERSION_HISTORY.md)
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### Requisitos
 - MySQL 8.0+ o MariaDB 10.4+
@@ -98,7 +98,7 @@ mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 mysql -u root -p bocaditos_db -e "SHOW TABLES;"
 ```
 
-## 📊 Modelo de Datos
+## Modelo de Datos
 
 El sistema gestiona las siguientes entidades principales:
 
@@ -110,7 +110,7 @@ El sistema gestiona las siguientes entidades principales:
 - **Comida**: Catálogo de alimentos donados
 - **Entrega**: Registro de entregas
 
-## 📖 Documentación Completa
+## Documentación Completa
 
 Para información detallada sobre la base de datos, consulta:
 - [**Documentación de Base de Datos**](./database/README.md) - Guía completa
@@ -118,7 +118,7 @@ Para información detallada sobre la base de datos, consulta:
 - [**Modelo Físico**](./database/modelado-fisico/README.md) - Implementación técnica
 - [**Historial de Versiones**](./database/versiones/VERSION_HISTORY.md) - Control de cambios
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 - **Motor de Base de Datos**: MySQL 8.0+ / MariaDB 10.4+
 - **Lenguaje**: SQL
@@ -127,26 +127,19 @@ Para información detallada sobre la base de datos, consulta:
 - **Normalización**: 3FN (Tercera Forma Normal)
 
 
-## 🤝 Contribución
 
-Para contribuir al proyecto:
 
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-caracteristica`)
-3. Documenta tus cambios en `VERSION_HISTORY.md`
-4. Commit tus cambios (`git commit -m 'Agregar nueva característica'`)
-5. Push a la rama (`git push origin feature/nueva-caracteristica`)
-6. Abre un Pull Request
-
-## 📄 Licencia
+## Licencia
 
 Este es un proyecto académico para UTRM.
 
-## 👥 Equipo
-
-Proyecto académico - Universidad Técnica Regional Metropolitana (UTRM)
-
-## 📧 Contacto
+## Autores
+- Fabian Nava Maria Fernanda
+- Elvia Alicia Garcia Garcia
+- Martinez Jimenez Bryan
+- Yam Cambara Oliver Josue
+- 
+## Contacto
 
 Para preguntas o sugerencias:
 - **Repositorio**: https://github.com/2402015-crypto/Bocaditos
