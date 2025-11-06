@@ -75,27 +75,6 @@ Este documento describe el modelo lógico de la base de datos para el sistema de
 6. Cada alumno tiene una matrícula única
 7. Los alumnos están organizados por grupos y cuatrimestres
 8. La tabla escuela almacena la información de UTRM
-
-## Diagrama Entidad-Relación
-
-```
-[Donador] 1----N [Donacion] 1----N [Escuela]
-                     |                  |
-                     |                  |
-                     |                  1
-                     |                  |
-                     |             [Administrador]
-                     |                  |
-                     |                  |
-                     |                  1
-                     |                  |
-                     N                  N
-                     |                  |
-                [Entrega]----------[Entrega]
-                
-[Donacion] 1----N [Comida]
-
-[Escuela] 1----N [Alumno]
 ```
 ```
 
