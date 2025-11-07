@@ -22,8 +22,7 @@ Bocaditos/
 │   ├── modelado-logico/         # Modelado lógico de la BD
 │   ├── modelado-fisico/         # Modelado físico de la BD
 │   ├── sql/                     # Archivos SQL
-│   │   ├── ddl/                 # Scripts de definición (CREATE TABLE, etc.)
-│   │   └── dml/                 # Scripts de datos (INSERT, SELECT, etc.)
+│   │   └── ddl/                 # Scripts de definición (CREATE TABLE, etc.)
 │   ├── versiones/               # Control de versiones documentado
 │   └── README.md                # Documentación de la base de datos
 └── README.md                    # Este archivo
