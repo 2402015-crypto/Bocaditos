@@ -245,21 +245,6 @@ Alerta sobre alimentos que caducarán en los próximos 30 días.
 - Performance schema para análisis
 - Monitoreo de uso de índices
 
-## Estimación de Volumen de Datos
-
-### Producción Estimada (1 año) - Una Escuela
-- Donadores: ~50 registros
-- Donaciones: ~200 registros/año
-- Administradores: ~10 personas
-- Alumnos: ~1,000 estudiantes
-- Comidas: ~2,000 productos
-- Entregas: ~200 registros/año
-
-### Crecimiento Proyectado
-- **Año 1**: 3,500 registros totales
-- **Año 3**: 10,500 registros totales
-- **Año 5**: 17,500 registros totales
-
 ## Requerimientos de Hardware
 
 ### Desarrollo
