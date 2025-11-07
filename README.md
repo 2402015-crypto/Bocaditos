@@ -85,12 +85,7 @@ cd Bocaditos/database
 mysql -u root -p < sql/ddl/01_create_schema.sql
 ```
 
-3. **Cargar datos de prueba (opcional)**
-```bash
-mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
-```
-
-4. **Verificar instalación**
+3. **Verificar instalación**
 ```bash
 mysql -u root -p bocaditos_db -e "SHOW TABLES;"
 ```
