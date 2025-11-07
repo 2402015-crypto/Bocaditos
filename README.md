@@ -55,9 +55,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
   - Vistas (4 vistas)
   - Triggers (2 triggers)
   - Índices y constraints
-- **DML**: Scripts de datos
-  - Datos iniciales de prueba
-  - Consultas comunes y reportes
+
 
 **Ver**: [Archivos SQL](./database/sql/)
 
@@ -138,12 +136,11 @@ Este es un proyecto académico para UTRM.
 - Elvia Alicia Garcia Garcia
 - Martinez Jimenez Bryan
 - Yam Cambara Oliver Josue
-- 
+  
 ## Contacto
 
 Para preguntas o sugerencias:
 - **Repositorio**: https://github.com/2402015-crypto/Bocaditos
-- **Issues**: https://github.com/2402015-crypto/Bocaditos/issues
 
 ---
 
