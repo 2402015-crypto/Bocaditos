@@ -8,7 +8,7 @@ Este documento describe el modelo lógico de la base de datos para el sistema de
 ### 1. Donador
 - **id_donador** (PK): Identificador único del donador (AUTO_INCREMENT)
 - nombre: Nombre completo del donador o institución
-- correo: Correo electrónico de contacto
+- correo: Correo electrónico de contacto del donador
 - celular: Número de teléfono celular
 - direccion: Dirección física del donador
 
