@@ -17,9 +17,6 @@ database/
 ├── sql/                      # Scripts SQL
 │   ├── ddl/                  # Data Definition Language (Estructura)
 │   │   └── 01_create_schema.sql
-│   └── dml/                  # Data Manipulation Language (Datos)
-│       ├── 01_insert_data.sql
-│       └── 02_queries.sql
 ├── versiones/                # Control de versiones
 │   └── VERSION_HISTORY.md    # Historial de versiones
 └── README.md                 # Este archivo
@@ -64,13 +61,6 @@ Scripts para crear la estructura de la base de datos:
   - Constraints
   - Triggers
   - Vistas
-
-#### DML (Data Manipulation Language)
-**Ubicación**: `/database/sql/dml/`
-
-Scripts para manipular datos:
-- `01_insert_data.sql`: Datos iniciales de prueba
-- `02_queries.sql`: Consultas comunes y reportes
 
 ### 4. Versiones Documentadas
 **Ubicación**: `/database/versiones/`
