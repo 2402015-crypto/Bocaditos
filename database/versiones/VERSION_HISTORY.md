@@ -15,7 +15,7 @@ Primera versión del esquema de base de datos para el sistema de donaciones alim
 
 ### Componentes Incluidos
 
-#### Tablas Principales (6 tablas)
+#### Tablas Principales (7 tablas)
 1. **donador** - Información de donadores (personas o instituciones)
 2. **donacion** - Registro de donaciones con cantidad y destino
 3. **administrador** - Personal que gestiona entregas en la escuela
