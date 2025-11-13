@@ -98,13 +98,7 @@ mysql -u root -p
 source sql/ddl/01_create_schema.sql;
 ```
 
-#### 3. Cargar datos iniciales (opcional)
-```bash
-# Ejecutar script de datos
-mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
-```
-
-#### 4. Verificar instalación
+#### 3. Verificar instalación
 ```sql
 -- Listar todas las tablas
 USE bocaditos_db;
@@ -120,7 +114,6 @@ SELECT COUNT(*) FROM alumno;
 ```bash
 # Ejecutar todos los scripts en orden
 mysql -u root -p < sql/ddl/01_create_schema.sql
-mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ```
 
 ## Uso de los Scripts
@@ -128,11 +121,6 @@ mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ### Crear la estructura completa
 ```bash
 mysql -u root -p < sql/ddl/01_create_schema.sql
-```
-
-### Cargar datos de prueba
-```bash
-mysql -u root -p bocaditos_db < sql/dml/01_insert_data.sql
 ```
 
 ### Ejecutar consultas de ejemplo
