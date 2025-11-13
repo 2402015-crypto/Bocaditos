@@ -25,6 +25,7 @@ CREATE TABLE `donador` (
     `id_donador` INT NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre del donador o institución',
     `correo` VARCHAR(150) NOT NULL COMMENT 'Correo electrónico de contacto',
+    `contrasena` VARCHAR(255) DEFAULT NULL COMMENT 'Contraseña (hash) del donador',
     `celular` VARCHAR(10) NOT NULL COMMENT 'Número de teléfono celular',
     `direccion` VARCHAR(255) NOT NULL COMMENT 'Dirección física del donador',
     PRIMARY KEY (`id_donador`),
@@ -78,6 +79,7 @@ CREATE TABLE `administrador` (
     `nombre` VARCHAR(60) NOT NULL COMMENT 'Nombre completo del administrador',
     `numero` VARCHAR(10) NOT NULL COMMENT 'Número de teléfono',
     `correo` VARCHAR(100) NOT NULL COMMENT 'Correo electrónico',
+    `contrasena` VARCHAR(255) DEFAULT NULL COMMENT 'Contraseña (hash) del administrador',
     `id_escuela` INT NOT NULL,
     PRIMARY KEY (`id_admi`),
     INDEX `idx_administrador_nombre` (`nombre`),
@@ -99,6 +101,8 @@ CREATE TABLE `alumno` (
     `grupo` VARCHAR(10) NOT NULL COMMENT 'Grupo al que pertenece',
     `cuatrimestre` VARCHAR(10) NOT NULL COMMENT 'Cuatrimestre actual',
     `matricula` VARCHAR(7) NOT NULL COMMENT 'Matrícula única del alumno',
+    `correo` VARCHAR(150) DEFAULT NULL COMMENT 'Correo electrónico del alumno',
+    `contrasena` VARCHAR(255) DEFAULT NULL COMMENT 'Contraseña (hash) del alumno',
     `id_escuela` INT NOT NULL,
     PRIMARY KEY (`id_alumno`),
     UNIQUE KEY `uk_alumno_matricula` (`matricula`),
@@ -153,7 +157,34 @@ CREATE TABLE `entrega` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de entregas de donaciones';
 
 -- ============================================
--- VISTAS
+-- ============================================
+-- TABLA: accesos
+-- Descripción: Tabla unificada de acceso para usuarios (donador, administrador, alumno)
+-- Se relaciona con las tablas de entidades mediante FK; solo una FK debe estar presente por fila
+-- ============================================
+DROP TABLE IF EXISTS `accesos`;
+CREATE TABLE `accesos` (
+    `id_acceso` INT NOT NULL AUTO_INCREMENT,
+    `correo` VARCHAR(150) NOT NULL COMMENT 'Correo de acceso (login)',
+    `contrasena` VARCHAR(255) NOT NULL COMMENT 'Contraseña (hash) utilizada para login',
+    `id_donador` INT DEFAULT NULL,
+    `id_admi` INT DEFAULT NULL,
+    `id_alumno` INT DEFAULT NULL,
+    `tipo_usuario` ENUM('donador','administrador','alumno') NOT NULL COMMENT 'Tipo de usuario al que pertenece este acceso',
+    PRIMARY KEY (`id_acceso`),
+    UNIQUE KEY `uk_accesos_correo` (`correo`),
+    CONSTRAINT `fk_accesos_donador` FOREIGN KEY (`id_donador`) REFERENCES `donador` (`id_donador`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_accesos_admi` FOREIGN KEY (`id_admi`) REFERENCES `administrador` (`id_admi`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_accesos_alumno` FOREIGN KEY (`id_alumno`) REFERENCES `alumno` (`id_alumno`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `chk_accesos_unico_usuario` CHECK (
+        (
+            (`id_donador` IS NOT NULL AND `id_admi` IS NULL AND `id_alumno` IS NULL AND `tipo_usuario` = 'donador') OR
+            (`id_donador` IS NULL AND `id_admi` IS NOT NULL AND `id_alumno` IS NULL AND `tipo_usuario` = 'administrador') OR
+            (`id_donador` IS NULL AND `id_admi` IS NULL AND `id_alumno` IS NOT NULL AND `tipo_usuario` = 'alumno')
+        )
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla de accesos para login de usuarios (relacionada con donador, administrador o alumno)';
+
 -- ============================================
 
 -- Vista: Donaciones con información del donador
