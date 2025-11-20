@@ -273,7 +273,7 @@ BEGIN
   VALUES (donador_id, escuela_id, estado_id, CURDATE());
 
   SET nueva_donacion_id = LAST_INSERT_ID();
-tipo_producto
+  
   -- Insertar detalle
   INSERT INTO detalle_donacion (id_donacion, id_producto, cantidad, fecha_caducidad)
   VALUES (nueva_donacion_id, producto_id, cantidad, fecha_cad);
