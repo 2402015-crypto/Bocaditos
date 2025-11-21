@@ -59,7 +59,7 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 **Ver**: [Archivos SQL](./database/sql/)
 
 ### Versiones Documentadas
-- Versión actual: **1.0.1**
+- Versión actual: **2.0.0**
 - Historial completo de cambios
 - Política de versionado semántico
 - Scripts de migración
