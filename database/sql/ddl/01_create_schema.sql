@@ -289,4 +289,61 @@ END$$
 
 DELIMITER ;
 
+-- ==========================
+-- Sistema de mensajería
+-- ==========================
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Tabla: conversacion
+CREATE TABLE IF NOT EXISTS conversacion (
+  id_conversacion INT AUTO_INCREMENT PRIMARY KEY,
+  asunto VARCHAR(255),
+  fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_ultimo_mensaje DATETIME,
+  estado ENUM('abierta','cerrada') DEFAULT 'abierta'
+);
+
+-- Tabla: conversacion_participante
+CREATE TABLE IF NOT EXISTS conversacion_participante (
+  id_participante INT AUTO_INCREMENT PRIMARY KEY,
+  id_conversacion INT NOT NULL,
+  id_usuario INT NULL,
+  id_donador INT NULL,
+  rol ENUM('administrador','donador') NOT NULL,
+  FOREIGN KEY (id_conversacion) REFERENCES conversacion(id_conversacion) ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+  FOREIGN KEY (id_donador) REFERENCES donador(id_donador),
+  CONSTRAINT chk_participante_unico CHECK ( (id_usuario IS NOT NULL AND id_donador IS NULL) OR (id_usuario IS NULL AND id_donador IS NOT NULL) )
+);
+
+-- Tabla: mensaje
+CREATE TABLE IF NOT EXISTS mensaje (
+  id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
+  id_conversacion INT NOT NULL,
+  id_usuario INT NULL,
+  id_donador INT NULL,
+  contenido TEXT NOT NULL,
+  fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
+  leido BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (id_conversacion) REFERENCES conversacion(id_conversacion) ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+  FOREIGN KEY (id_donador) REFERENCES donador(id_donador),
+  CONSTRAINT chk_mensaje_emisor CHECK ( (id_usuario IS NOT NULL AND id_donador IS NULL) OR (id_usuario IS NULL AND id_donador IS NOT NULL) )
+);
+
+CREATE INDEX IF NOT EXISTS idx_mensaje_conversacion_fecha ON mensaje (id_conversacion, fecha_envio);
+
+-- Trigger para actualizar fecha_ultimo_mensaje en la conversación
+DELIMITER $$
+CREATE TRIGGER trg_update_fecha_ultimo_mensaje
+AFTER INSERT ON mensaje
+FOR EACH ROW
+BEGIN
+  UPDATE conversacion
+  SET fecha_ultimo_mensaje = NEW.fecha_envio
+  WHERE id_conversacion = NEW.id_conversacion;
+END$$
+DELIMITER ;
+
 SET FOREIGN_KEY_CHECKS = 1;
