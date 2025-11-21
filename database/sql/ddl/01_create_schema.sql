@@ -115,6 +115,7 @@ CREATE TABLE administrador (
 -- Tabla: donador
 CREATE TABLE donador (
   id_donador INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
   rfc VARCHAR(12) NOT NULL UNIQUE,
   razon_social VARCHAR(100) NOT NULL,
   telefono VARCHAR(15) NOT NULL,
