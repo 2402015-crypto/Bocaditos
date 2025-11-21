@@ -84,7 +84,7 @@ CREATE TABLE usuario (
   matricula VARCHAR(10) NOT NULL,
   cuatrimestre VARCHAR(10) NOT NULL,
   correo VARCHAR(150) NOT NULL UNIQUE,
-  contraseña VARCHAR(255) NOT NULL,
+  contrasena VARCHAR(255) NOT NULL,
   id_rol INT NOT NULL,
   id_escuela INT NOT NULL,
   id_ubicacion INT,
@@ -119,7 +119,7 @@ CREATE TABLE donador (
   razon_social VARCHAR(100) NOT NULL,
   telefono VARCHAR(15) NOT NULL,
   correo VARCHAR(150) NOT NULL,
-  contraseña VARCHAR(255) NOT NULL,
+  contrasena VARCHAR(255) NOT NULL,
   id_ubicacion INT NOT NULL,
   FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id_ubicacion)
 );
@@ -274,7 +274,7 @@ BEGIN
   SET nueva_donacion_id = LAST_INSERT_ID();
   
   -- Insertar detalle
-  INSERT INTO detalle_donacion (id_donacion, id_producto, cantidad),
+  INSERT INTO detalle_donacion (id_donacion, id_producto, cantidad)
   VALUES (nueva_donacion_id, producto_id, cantidad);
 
   -- Actualizar stock
