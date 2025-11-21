@@ -1,104 +1,72 @@
 # Modelado Lógico de Base de Datos - Sistema Bocaditos
 
 ## Descripción General
-Este documento describe el modelo lógico de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM, basado en el esquema MySQL/MariaDB.
+Este documento describe el modelo lógico actualizado de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM. Está alineado con el script DDL principal `database/sql/ddl/01_create_schema.sql` (v2.0.1).
 
-## Entidades Principales
+## Entidades Principales (resumen lógico)
 
-### 1. Donador
-- **id_donador** (PK): Identificador único del donador (AUTO_INCREMENT)
-- nombre: Nombre completo del donador o institución
-- correo: Correo electrónico de contacto del donador
-- celular: Número de teléfono celular
-- direccion: Dirección física del donador
+- `tipo_producto`: Catálogo de tipos de producto (Frutas, Verduras, Enlatados, Pan, Lacteos, Cereales, Bebidas).
+- `producto`: Productos donados; atributos principales: `id_producto`, `nombre`, `fecha_caducidad`, `id_tipo_producto`.
+- `donador`: Personas o instituciones donantes; `id_donador`, `nombre` (o razon_social), `rfc`, `telefono`, `correo`, `id_ubicacion`.
+- `donacion`: Cabecera de donación; `id_donacion`, `id_donador`, `id_escuela`, `fecha_donacion`, `id_estado_donacion`.
+- `detalle_donacion`: Líneas de donación que relacionan `donacion` con `producto` y `cantidad`.
+- `estado_donacion`: Catálogo de estados de donación (`pendiente`, `entregada`, `cancelada`).
+- `escuela`: Instituciones beneficiarias; `id_escuela`, `nombre`, `id_ubicacion`.
+- `ubicacion / ciudad / estado`: Jerarquía para la localización geográfica.
+- `rol` y `usuario`: Usuarios del sistema; `usuario` contiene alumnos y administradores, `rol` define el tipo.
+- `administrador`: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
+- `stock`: Inventario por `producto` y `escuela` (cantidad_disponible, entradas/salidas, fechas).
+- `paquete` y `paquete_stock`: Paquetes predefinidos y su relación con `stock` (tabla pivote con cantidad por item).
+- `entrega`: Registro de entregas de paquetes a alumnos (`id_entrega`, `fecha`, `id_paquete`, `id_alumno`).
+- `alergia` y `usuario_alergia`: Catálogo de alergias y relación muchos-a-muchos con usuarios.
+- `comentario_alumno`: Comentarios/sugerencias enviados por alumnos.
+- Mensajería: `conversacion`, `conversacion_participante`, `mensaje` — permite comunicación entre administradores (`usuario`) y donadores.
 
-### 2. Donacion
-- **id_donacion** (PK): Identificador único de la donación (AUTO_INCREMENT)
-- cantidad: Cantidad de alimentos donados
-- destino: Destino de la donación (nombre de la escuela)
-- fecha_donacion: Fecha en que se realizó la donación
-- id_donador (FK): Referencia al donador
+## Relaciones (principales)
 
-### 3. Escuela
-- **id_escuela** (PK): Identificador único de la escuela (AUTO_INCREMENT)
-- nombre: Nombre de la institución educativa (UTRM)
-- ubicacion: Dirección física de la escuela
-- id_donacion (FK): Referencia a la donación recibida
+- Donador 1:N Donacion
+- Donacion 1:N Detalle_donacion
+- Donacion N:1 Escuela (cada donación tiene una escuela destino)
+- Escuela 1:N Usuario (alumnos y administradores)
+- Usuario (administrador) 1:1 Administrador (tabla administrativa con fecha de asignación)
+- Producto 1:N Detalle_donacion
+- Producto N:1 Stock (por escuela)
+- Paquete N:M Stock (a través de `paquete_stock`)
+- Conversacion 1:N Mensaje
+- Conversacion 1:N Conversacion_participante (participantes pueden ser `usuario` o `donador`)
 
-### 4. Administrador
-- **id_admi** (PK): Identificador único del administrador (AUTO_INCREMENT)
-- nombre: Nombre completo del administrador
-- numero: Número de teléfono
-- correo: Correo electrónico
-- id_escuela (FK): Referencia a la escuela donde trabaja
+## Reglas de Negocio (actualizadas)
 
-### 5. Alumno
-- **id_alumno** (PK): Identificador único del alumno (AUTO_INCREMENT)
-- nombre: Nombre del alumno
-- apellido: Apellido del alumno
-- grupo: Grupo al que pertenece
-- cuatrimestre: Cuatrimestre actual
-- matricula: Matrícula única del alumno
-- id_escuela (FK): Referencia a la escuela
-
-### 6. Comida
-- **id_comida** (PK): Identificador único del alimento (AUTO_INCREMENT)
-- nombre: Nombre del producto alimenticio
-- tipo_comida: Tipo o categoría del alimento
-- fecha_caducidad: Fecha de caducidad del producto
-- id_donacion (FK): Referencia a la donación
-
-### 7. Entrega
-- **id_entrega** (PK): Identificador único de la entrega (AUTO_INCREMENT)
-- estado: Estado actual de la entrega
-- fecha_entrega: Fecha programada o realizada de entrega
-- id_admin (FK): Referencia al administrador responsable
-- id_donacion (FK): Referencia a la donación entregada
-
-## Relaciones
-
-1. **Donador - Donacion**: Relación 1:N (Un donador puede realizar múltiples donaciones)
-2. **Donacion - Escuela**: Relación 1:N (Una donación puede ir a múltiples escuelas)
-3. **Escuela - Administrador**: Relación 1:N (Una escuela tiene varios administradores)
-4. **Escuela - Alumno**: Relación 1:N (Una escuela tiene múltiples alumnos)
-5. **Administrador - Entrega**: Relación 1:N (Un administrador gestiona varias entregas)
-6. **Donacion - Entrega**: Relación 1:N (Una donación puede tener múltiples entregas)
-7. **Donacion - Comida**: Relación 1:N (Una donación contiene múltiples alimentos)
-
-## Reglas de Negocio
-
-1. Cada donación debe estar asociada a un donador
-2. El sistema gestiona donaciones para la escuela UTRM
-3. Los administradores gestionan las entregas de la escuela
-4. Las entregas tienen estados: pendiente, en_proceso, completada, cancelada
-5. Los alimentos tienen fecha de caducidad que debe ser validada
-6. Cada alumno tiene una matrícula única
-7. Los alumnos están organizados por grupos y cuatrimestres
-8. La tabla escuela almacena la información de UTRM
-```
-```
+1. Cada donación debe estar asociada a un `donador` y a una `escuela` destino.
+2. `detalle_donacion.cantidad` debe ser mayor que 0 (CHECK).
+3. `producto.fecha_caducidad` no puede ser anterior a la fecha actual (validado por trigger).
+4. `stock` se actualiza cuando se registran donaciones y entregas (procedimientos `registrar_donacion` y `registrar_entrega`).
+5. Las conversaciones solo permiten participantes válidos: o un `usuario` o un `donador` (CHECK en `conversacion_participante`).
+6. Los mensajes deben tener un emisor válido (usuario o donador) y actualizan la fecha del último mensaje en la conversación mediante trigger.
 
 ## Normalización
 
-El modelo se encuentra en Tercera Forma Normal (3FN):
-- **Primera Forma Normal (1FN)**: ✓ Todos los atributos contienen valores atómicos
-- **Segunda Forma Normal (2FN)**: ✓ Todos los atributos no clave dependen de la clave primaria completa
-- **Tercera Forma Normal (3FN)**: ✓ No existen dependencias transitivas
+El modelo lógico está en Tercera Forma Normal (3FN):
+- 1FN: Atributos atómicos.
+- 2FN: No hay dependencias parciales respecto a claves compuestas (PKs son simples donde corresponde).
+- 3FN: No hay dependencias transitivas; entidades lookup se han separado (estado, tipo_producto, alergia, etc.).
 
-## Tipos de Datos (MySQL/MariaDB)
+## Tipos de Datos y convenciones
 
-| Campo | Tipo MySQL |
-|-------|-----------|
-| id_* | INT AUTO_INCREMENT |
-| nombre | VARCHAR(60) |
-| correo | VARCHAR(150) o VARCHAR(100) |
-| celular/numero | VARCHAR(10) |
-| direccion | VARCHAR(255) |
-| tipo_comida | VARCHAR(50) |
-| estado | VARCHAR(20) |
-| fecha_* | DATE |
-| grupo | VARCHAR(10) |
-| cuatrimestre | VARCHAR(10) |
-| matricula | VARCHAR(7) UNIQUE |
-| cantidad | INT |
-| destino | VARCHAR(255) |
+- Identificadores: INT AUTO_INCREMENT
+- Textos cortos: VARCHAR (longitudes según campo)
+- Fechas: DATE / DATETIME
+- Booleanos: BOOLEAN / TINYINT(1)
+- Uso de ENUM para catálogos cerrados (`estado_donacion`, `rol`, `tipo_producto`)
+- Nombres de columnas: snake_case en minúsculas
+
+## Consideraciones de implementación
+
+- Gestionar borrados con `ON DELETE` coherente según reglas (p.ej. `ON DELETE CASCADE` en `conversacion_participante` para borrar participantes al eliminar conversación).
+
+
+## Diagramas y artefactos relacionados
+
+- Ver `database/modelado-logico/` para diagramas ER y documentación detallada por entidad.
+- Ver `database/sql/ddl/01_create_schema.sql` para la definición física y constraints.
+

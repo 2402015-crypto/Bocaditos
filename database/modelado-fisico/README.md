@@ -11,175 +11,46 @@ Este documento describe el modelo físico de la base de datos para el sistema de
 - **Storage Engine**: InnoDB
 - **Zona Horaria**: America/Mexico_City
 
-## Tablas
+## Tablas (resumen actualizado)
 
-### 1. donador
-```sql
-Nombre de tabla: donador
-Columnas:
-- id_donador: INT AUTO_INCREMENT PRIMARY KEY
-- nombre: VARCHAR(60) NOT NULL
-- correo: VARCHAR(150) NOT NULL
-- celular: VARCHAR(10) NOT NULL
-- direccion: VARCHAR(255) NOT NULL
+Esta sección resume el modelo físico actual tal como está definido en `database/sql/ddl/01_create_schema.sql` (v2.0.1).
 
-Índices:
-- PK_donador: PRIMARY KEY (id_donador)
-- IDX_donador_nombre: INDEX (nombre)
-- IDX_donador_correo: INDEX (correo)
+- `tipo_producto` (catálogo): `id_tipo_producto` (PK), `nombre_tipo` (ENUM).
+- `producto`: `id_producto` (PK), `nombre`, `fecha_caducidad`, `id_tipo_producto` (FK).
+- `estado_donacion`: `id_estado_donacion` (PK), `nombre_estado` (ENUM).
+- `estado`: `id_estado` (PK), `nombre_estado` (UNIQUE) — usado por `ciudad`.
+- `ciudad`: `id_ciudad` (PK), `nombre_ciudad`, `id_estado` (FK).
+- `ubicacion`: `id_ubicacion` (PK), `direccion`, `codigo_postal`, `id_ciudad` (FK).
+- `escuela`: `id_escuela` (PK), `nombre`, `id_ubicacion` (FK).
+- `rol`: `id_rol` (PK), `nombre_rol` (ENUM: 'alumno','administrador').
+- `usuario`: `id_usuario` (PK), `nombre`, `apellido`, `telefono`, `matricula`, `cuatrimestre`, `correo` (UNIQUE), `contrasena`, `id_rol` (FK), `id_escuela` (FK), `id_ubicacion` (FK).
+- `comentario_alumno`: `id_comentario` (PK), `id_alumno` (FK->usuario), `contenido`, `fecha_envio`.
+- `administrador`: `id_admin` (PK), `id_usuario` (FK UNIQUE), `fecha_asignacion`.
+- `donador`: `id_donador` (PK), `nombre`, `rfc` (UNIQUE), `razon_social`, `telefono`, `correo`, `contrasena`, `id_ubicacion` (FK).
+- `donacion`: `id_donacion` (PK), `id_donador` (FK), `id_escuela` (FK), `fecha_donacion`, `id_estado_donacion` (FK).
+- `detalle_donacion`: `id_detalle_donacion` (PK), `id_donacion` (FK), `id_producto` (FK), `cantidad` (CHECK > 0).
+- `stock`: `id_stock` (PK), `id_producto` (FK), `id_escuela` (FK), `cantidad_disponible`, `cantidad_entrada`, `cantidad_salida`, fechas (entrada/salida/actualizacion). Considerar índice UNIQUE `(id_producto,id_escuela)` si se usa `ON DUPLICATE KEY`.
+- `paquete`: `id_paquete` (PK), `nombre`, `descripcion`, `fecha_creacion`, `id_admin` (FK).
+- `paquete_stock`: pivote (`id_paquete`, `id_stock`) PK compuesta, `cantidad`.
+- `entrega`: `id_entrega` (PK), `fecha`, `id_paquete` (FK), `id_alumno` (FK->usuario).
+- `alergia`: `id_alergia` (PK), `descripcion_alergia`.
+- `usuario_alergia`: pivote (`id_usuario`, `id_alergia`) PK compuesta.
+- Mensajería:
+    - `conversacion`: `id_conversacion` (PK), `asunto`, `fecha_creacion`, `fecha_ultimo_mensaje`, `estado` (ENUM).
+    - `conversacion_participante`: `id_participante` (PK), `id_conversacion` (FK), `id_usuario` (nullable), `id_donador` (nullable), `rol` (ENUM), con CHECK que obliga a uno de los dos (usuario o donador).
+    - `mensaje`: `id_mensaje` (PK), `id_conversacion` (FK), `id_usuario` (nullable), `id_donador` (nullable), `contenido`, `fecha_envio`, `leido`, con CHECK que obliga a un emisor válido.
 
-Storage Engine: InnoDB
-Descripción: Almacena información de personas o instituciones que realizan donaciones.
-```
+## Triggers y Procedimientos
 
-### 2. donacion
-```sql
-Nombre de tabla: donacion
-Columnas:
-- id_donacion: INT AUTO_INCREMENT PRIMARY KEY
-- cantidad: INT NOT NULL
-- destino: VARCHAR(255) NOT NULL
-- fecha_donacion: DATE NOT NULL
-- id_donador: INT NOT NULL
+- Triggers de validación de producto:
+    - `trg_validar_fecha_caducidad_insert` (BEFORE INSERT ON `producto`): evita insertar `fecha_caducidad` menor a `CURDATE()`.
+    - `trg_validar_fecha_caducidad_update` (BEFORE UPDATE ON `producto`).
+- Mensajería:
+    - `trg_update_fecha_ultimo_mensaje` (AFTER INSERT ON `mensaje`): actualiza `conversacion.fecha_ultimo_mensaje`.
+- Procedimientos almacenados:
+    - `registrar_entrega(alumno_id, paquete_id, entrega_fecha)`: inserta en `entrega` y actualiza `stock` según `paquete_stock`.
+    - `registrar_donacion(donador_id, escuela_id, estado_id, producto_id, cantidad)`: inserta `donacion`, `detalle_donacion` y actualiza `stock` con `ON DUPLICATE KEY UPDATE`.
 
-Índices:
-- PK_donacion: PRIMARY KEY (id_donacion)
-- FK_donacion_donador: FOREIGN KEY (id_donador) REFERENCES donador(id_donador)
-- IDX_donacion_donador: INDEX (id_donador)
-- IDX_donacion_fecha: INDEX (fecha_donacion)
-
-Constraints:
-- CHECK (cantidad > 0)
-
-Storage Engine: InnoDB
-Descripción: Registra las donaciones realizadas con cantidad y destino (UTRM).
-```
-
-### 3. escuela
-```sql
-Nombre de tabla: escuela
-Columnas:
-- id_escuela: INT AUTO_INCREMENT PRIMARY KEY
-- nombre: VARCHAR(60) NOT NULL
-- ubicacion: VARCHAR(255) NOT NULL
-- id_donacion: INT NOT NULL
-
-Índices:
-- PK_escuela: PRIMARY KEY (id_escuela)
-- FK_escuela_donacion: FOREIGN KEY (id_donacion) REFERENCES donacion(id_donacion)
-- IDX_escuela_nombre: INDEX (nombre)
-- IDX_escuela_donacion: INDEX (id_donacion)
-
-Storage Engine: InnoDB
-Descripción: Información de la escuela beneficiaria (UTRM).
-```
-
-### 4. administrador
-```sql
-Nombre de tabla: administrador
-Columnas:
-- id_admi: INT AUTO_INCREMENT PRIMARY KEY
-- nombre: VARCHAR(60) NOT NULL
-- numero: VARCHAR(10) NOT NULL
-- correo: VARCHAR(100) NOT NULL
-- id_escuela: INT NOT NULL
-
-Índices:
-- PK_administrador: PRIMARY KEY (id_admi)
-- FK_administrador_escuela: FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela)
-- IDX_administrador_nombre: INDEX (nombre)
-- IDX_administrador_correo: INDEX (correo)
-- IDX_administrador_escuela: INDEX (id_escuela)
-
-Storage Engine: InnoDB
-Descripción: Personal administrativo de la escuela que gestiona las donaciones.
-```
-
-### 5. alumno
-```sql
-Nombre de tabla: alumno
-Columnas:
-- id_alumno: INT AUTO_INCREMENT PRIMARY KEY
-- nombre: VARCHAR(60) NOT NULL
-- apellido: VARCHAR(60) NOT NULL
-- grupo: VARCHAR(10) NOT NULL
-- cuatrimestre: VARCHAR(10) NOT NULL
-- matricula: VARCHAR(7) NOT NULL UNIQUE
-- id_escuela: INT NOT NULL
-
-Índices:
-- PK_alumno: PRIMARY KEY (id_alumno)
-- FK_alumno_escuela: FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela)
-- UK_alumno_matricula: UNIQUE (matricula)
-- IDX_alumno_nombre: INDEX (nombre, apellido)
-- IDX_alumno_grupo: INDEX (grupo)
-- IDX_alumno_escuela: INDEX (id_escuela)
-
-Storage Engine: InnoDB
-Descripción: Estudiantes beneficiarios del programa de donaciones.
-```
-
-### 6. comida
-```sql
-Nombre de tabla: comida
-Columnas:
-- id_comida: INT AUTO_INCREMENT PRIMARY KEY
-- nombre: VARCHAR(255) NOT NULL
-- tipo_comida: VARCHAR(50) NOT NULL
-- fecha_caducidad: DATE NOT NULL
-- id_donacion: INT NOT NULL
-
-Índices:
-- PK_comida: PRIMARY KEY (id_comida)
-- FK_comida_donacion: FOREIGN KEY (id_donacion) REFERENCES donacion(id_donacion)
-- IDX_comida_nombre: INDEX (nombre)
-- IDX_comida_tipo: INDEX (tipo_comida)
-- IDX_comida_fecha_caducidad: INDEX (fecha_caducidad)
-- IDX_comida_donacion: INDEX (id_donacion)
-
-Storage Engine: InnoDB
-Descripción: Catálogo de alimentos incluidos en las donaciones.
-```
-
-### 7. entrega
-```sql
-Nombre de tabla: entrega
-Columnas:
-- id_entrega: INT AUTO_INCREMENT PRIMARY KEY
-- estado: VARCHAR(20) NOT NULL
-- fecha_entrega: DATE NOT NULL
-- id_admin: INT NOT NULL
-- id_donacion: INT NOT NULL
-
-Índices:
-- PK_entrega: PRIMARY KEY (id_entrega)
-- FK_entrega_administrador: FOREIGN KEY (id_admin) REFERENCES administrador(id_admi)
-- FK_entrega_donacion: FOREIGN KEY (id_donacion) REFERENCES donacion(id_donacion)
-- IDX_entrega_fecha: INDEX (fecha_entrega)
-- IDX_entrega_estado: INDEX (estado)
-- IDX_entrega_admin: INDEX (id_admin)
-- IDX_entrega_donacion: INDEX (id_donacion)
-
-Constraints:
-- CHECK (estado IN ('pendiente', 'en_proceso', 'completada', 'cancelada'))
-
-Storage Engine: InnoDB
-Descripción: Registro de entregas de donaciones a la escuela.
-```
-
-## Vistas Implementadas
-
-### 1. v_donaciones_completas
-Combina información de donaciones con datos del donador para consultas rápidas.
-
-### 2. v_entregas_detalladas
-Presenta un resumen completo de cada entrega con información del administrador, escuela y donación.
-
-### 3. v_alumnos_por_escuela
-Lista de alumnos organizados por escuela para reportes administrativos.
-
-### 4. v_comidas_proximas_caducar
-Alerta sobre alimentos que caducarán en los próximos 30 días.
 
 ## Triggers
 
@@ -235,15 +106,6 @@ Alerta sobre alimentos que caducarán en los próximos 30 días.
 - Query cache habilitado
 - Índices en campos de búsqueda y filtrado
 
-### 3. Mantenimiento
-- **OPTIMIZE TABLE**: Mensual para desfragmentar tablas
-- **ANALYZE TABLE**: Después de cargas masivas de datos
-- **Limpieza de logs**: Rotación semanal
-
-### 4. Monitoreo
-- Slow query log habilitado
-- Performance schema para análisis
-- Monitoreo de uso de índices
 
 ## Requerimientos de Hardware
 
@@ -267,14 +129,6 @@ Alerta sobre alimentos que caducarán en los próximos 30 días.
 2. **bocaditos_admin**: Acceso completo a bocaditos_db
 3. **bocaditos_app**: Acceso de aplicación (CRUD)
 4. **bocaditos_readonly**: Solo lectura
-
-### Recomendaciones
-- Usar SSL/TLS para conexiones remotas
-- Contraseñas fuertes para todos los usuarios
-- Auditoría con general_log o binary log
-- Encriptación de datos sensibles (correos, teléfonos)
-- Backups diarios automáticos
-- Firewall para limitar acceso al puerto 3306
 
 ## Backup y Recuperación
 
@@ -307,40 +161,7 @@ mysql -u root -p bocaditos_db < backup_20251104.sql
 gunzip < backup_20251104.sql.gz | mysql -u root -p bocaditos_db
 ```
 
-## Scripts de Mantenimiento MySQL
-
-```sql
--- Optimizar todas las tablas
-OPTIMIZE TABLE donador, donacion, administrador, alumno, comida, entrega;
-
--- Analizar tablas para actualizar estadísticas
-ANALYZE TABLE donador, donacion, administrador, alumno, comida, entrega;
-
--- Verificar integridad de tablas
-CHECK TABLE donador, donacion, administrador, alumno, comida, entrega;
-
--- Reparar tabla si es necesario
-REPAIR TABLE nombre_tabla;
-
--- Ver tamaño de tablas
-SELECT 
-    table_name,
-    ROUND(((data_length + index_length) / 1024 / 1024), 2) AS size_mb
-FROM information_schema.TABLES
-WHERE table_schema = 'bocaditos_db'
-ORDER BY (data_length + index_length) DESC;
-```
-
 ## Configuración Recomendada my.cnf
-
-```ini
-[mysqld]
-# Configuración básica
-innodb_buffer_pool_size = 2G
-innodb_log_file_size = 256M
-max_connections = 100
-query_cache_size = 64M
-query_cache_type = 1
 
 # Character set
 character-set-server = utf8mb4

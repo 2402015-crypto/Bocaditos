@@ -50,11 +50,13 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 
 ### Archivos SQL
 - **DDL**: Scripts de creación del esquema MySQL
-  - Tablas (7 entidades: donador, donacion, escuela, administrador, alumno, comida, entrega)
-  - Vistas (4 vistas)
-  - Triggers (2 triggers)
-  - Índices y constraints
-
+  - Scripts principales:
+    - `database/sql/ddl/01_create_schema.sql` — esquema principal (tablas, índices, triggers y procedimientos)
+  - Componentes incluidos:
+    - Tablas principales (donador, donacion, escuela, administrador, usuario, producto, stock, paquete, entrega, etc.)
+    - Sistema de mensajería: `conversacion`, `conversacion_participante`, `mensaje` (agregado en v2.0.0)
+    - Triggers y procedimientos (por ejemplo `trg_validar_fecha_caducidad`, `trg_update_fecha_ultimo_mensaje`, `registrar_entrega`, `registrar_donacion`)
+    - Índices, constraints y validaciones (CHECK, UNIQUE)
 
 **Ver**: [Archivos SQL](./database/sql/)
 
@@ -62,7 +64,6 @@ El directorio `/database` contiene el repositorio completo de base de datos con:
 - Versión actual: **2.0.0**
 - Historial completo de cambios
 - Política de versionado semántico
-- Scripts de migración
 
 **Ver**: [Control de Versiones](./database/versiones/VERSION_HISTORY.md)
 
@@ -92,15 +93,30 @@ mysql -u root -p bocaditos_db -e "SHOW TABLES;"
 
 ## Modelo de Datos
 
-El sistema gestiona las siguientes entidades principales:
+El sistema gestiona las siguientes entidades principales (esquema actualizado):
 
-- **Donador**: Personas o instituciones donantes
-- **Donación**: Registro de donaciones
-- **Escuela**: Información de la institución educativa (UTRM)
-- **Administrador**: Personal que gestiona entregas
-- **Alumno**: Estudiantes beneficiarios
-- **Comida**: Catálogo de alimentos donados
-- **Entrega**: Registro de entregas
+- **tipo_producto**: Tipos de productos (Frutas, Verduras, Enlatados, Pan, Lacteos, Cereales, Bebidas).
+- **producto**: Productos donados con fecha de caducidad y referencia a `tipo_producto`.
+- **donador**: Personas o instituciones que realizan donaciones (RFC, contacto, ubicación).
+- **donacion**: Cabecera de donación (donador, escuela destino, fecha y estado).
+- **detalle_donacion**: Líneas de donación que relacionan donación con `producto` y cantidad.
+- **estado_donacion**: Catálogo de estados de donación (pendiente, entregada, cancelada).
+- **escuela**: Instituciones beneficiarias (referencia a `ubicacion`).
+- **ubicacion / ciudad / estado**: Jerarquía de localización geográfica.
+- **usuario**: Usuarios del sistema (alumnos y administradores) con rol, escuela y contacto.
+- **rol**: Tipos de usuario (`alumno`, `administrador`).
+- **administrador**: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
+- **stock**: Control de existencias por `producto` y `escuela` (entradas, salidas, disponible, fechas).
+- **paquete**: Paquetes predefinidos compuestos por `stock` (tabla pivote `paquete_stock`).
+- **paquete_stock**: Asociación muchos-a-muchos entre `paquete` y `stock` indicando cantidades por paquete.
+- **entrega**: Registro de entregas de paquetes a alumnos.
+- **alergia / usuario_alergia**: Catálogo de alergias y relación con usuarios.
+- **comentario_alumno**: Comentarios/sugerencias enviados por alumnos.
+- **conversacion / conversacion_participante / mensaje**: Sistema de mensajería entre administradores (usuarios) y donadores (con conversaciones, participantes y mensajes).
+
+Adicionalmente hay triggers y procedimientos para validaciones y operaciones frecuentes, por ejemplo:
+- Triggers: `trg_validar_fecha_caducidad_*` (evitan insertar productos con caducidad pasada), `trg_update_fecha_ultimo_mensaje` (actualiza fecha del último mensaje en una conversación).
+- Procedimientos: `registrar_entrega`, `registrar_donacion` (automatizan insert de cabeceras, detalles y actualización de stock).
 
 ## Documentación Completa
 
@@ -138,5 +154,5 @@ Para preguntas o sugerencias:
 
 ---
 
-**Versión de Base de Datos**: 1.0.0  
-**Última Actualización**: 2025-11-04
+**Versión de Base de Datos**: 2.0.0  
+**Última Actualización**: 2025-11-20 
