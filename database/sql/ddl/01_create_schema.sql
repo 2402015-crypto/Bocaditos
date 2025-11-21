@@ -1,7 +1,7 @@
 -- ============================================
 -- Script de Creación de Base de Datos
 -- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
--- Versión: 2.0.01
+-- Versión: 2.0.1
 -- Fecha: 2025-11-20
 -- Motor: MySQL/MariaDB
 -- ============================================
