@@ -162,7 +162,6 @@ gunzip < backup_20251104.sql.gz | mysql -u root -p bocaditos_db
 ```
 
 ## Configuración Recomendada my.cnf
-
 # Character set
 character-set-server = utf8mb4
 collation-server = utf8mb4_general_ci
