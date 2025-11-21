@@ -20,7 +20,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Tabla: tipo_producto
 CREATE TABLE tipo_producto (
   id_tipo_producto INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_tipo ENUM('frutas', 'verduras', 'cereales', 'leguminosas', 'alimentos de origen animal', 'bebidas') NOT NULL
+  nombre_tipo ENUM('Frutas', 'Verduras', 'Enlatados', 'Pan', 'Lacteos', 'Cereales', 'Bebidas') NOT NULL
 );
 
 -- Tabla: producto
