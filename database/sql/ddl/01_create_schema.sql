@@ -27,6 +27,7 @@ CREATE TABLE tipo_producto (
 CREATE TABLE producto (
   id_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
+  fecha_caducidad DATE NOT NULL,
   id_tipo_producto INT NOT NULL,
   FOREIGN KEY (id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto)
 );
@@ -71,7 +72,7 @@ CREATE TABLE escuela (
 -- Tabla: rol
 CREATE TABLE rol (
   id_rol INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_rol ENUM('alumno','administrador') NOT NULL
+    nombre_rol ENUM('alumno','administrador') NOT NULL
 );
 
 -- Tabla: usuario
@@ -96,7 +97,6 @@ CREATE TABLE usuario (
 CREATE TABLE comentario_alumno (
   id_comentario INT AUTO_INCREMENT PRIMARY KEY,
   id_alumno INT NOT NULL,
-  tipo ENUM('comentario', 'sugerencia', 'queja') DEFAULT 'comentario',
   contenido TEXT NOT NULL,
   fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_alumno) REFERENCES usuario(id_usuario)
@@ -142,7 +142,6 @@ CREATE TABLE detalle_donacion (
   id_donacion INT NOT NULL,
   id_producto INT NOT NULL,
   cantidad INT CHECK (cantidad > 0),
-  fecha_caducidad DATE NOT NULL,
   FOREIGN KEY (id_donacion) REFERENCES donacion(id_donacion),
   FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
 );
@@ -165,7 +164,7 @@ CREATE TABLE stock (
 -- Tabla: paquete
 CREATE TABLE paquete (
   id_paquete INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100),
+  nombre DATE NOT NULL,
   descripcion TEXT,
   fecha_creacion DATE NOT NULL,
   id_admin INT NOT NULL,
@@ -211,7 +210,7 @@ CREATE TABLE usuario_alergia (
 DELIMITER $$
 
 CREATE TRIGGER trg_validar_fecha_caducidad_insert
-BEFORE INSERT ON detalle_donacion
+BEFORE INSERT ON producto
 FOR EACH ROW
 BEGIN
   IF NEW.fecha_caducidad < CURDATE() THEN
@@ -221,7 +220,7 @@ BEGIN
 END$$
 
 CREATE TRIGGER trg_validar_fecha_caducidad_update
-BEFORE UPDATE ON detalle_donacion
+BEFORE UPDATE ON producto
 FOR EACH ROW
 BEGIN
   IF NEW.fecha_caducidad < CURDATE() THEN
@@ -275,8 +274,8 @@ BEGIN
   SET nueva_donacion_id = LAST_INSERT_ID();
   
   -- Insertar detalle
-  INSERT INTO detalle_donacion (id_donacion, id_producto, cantidad, fecha_caducidad)
-  VALUES (nueva_donacion_id, producto_id, cantidad, fecha_cad);
+  INSERT INTO detalle_donacion (id_donacion, id_producto, cantidad),
+  VALUES (nueva_donacion_id, producto_id, cantidad);
 
   -- Actualizar stock
   INSERT INTO stock (id_producto, id_escuela, cantidad_disponible, cantidad_entrada, fecha_entrada, fecha_actualizacion)
