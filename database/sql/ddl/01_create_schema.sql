@@ -17,66 +17,67 @@ CREATE DATABASE IF NOT EXISTS `bocaditos_db`
 USE `bocaditos_db`;
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Tabla: tipo_producto
-CREATE TABLE tipo_producto (
+-- Tabla: tipos_productos
+CREATE TABLE tipos_productos (
   id_tipo_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre_tipo ENUM('Frutas', 'Verduras', 'Enlatados', 'Pan', 'Lacteos', 'Cereales', 'Bebidas') NOT NULL
 );
 
--- Tabla: producto
-CREATE TABLE producto (
+-- Tabla: productos
+CREATE TABLE productos (
   id_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   fecha_caducidad DATE NOT NULL,
   id_tipo_producto INT NOT NULL,
-  FOREIGN KEY (id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto)
+  FOREIGN KEY (id_tipo_producto) REFERENCES tipos_productos(id_tipo_producto)
 );
 
--- Tabla: estado_donacion
-CREATE TABLE estado_donacion (
+ 
+-- Tabla: estados_donaciones
+CREATE TABLE estados_donaciones (
   id_estado_donacion INT AUTO_INCREMENT PRIMARY KEY,
   nombre_estado ENUM('pendiente','entregada','cancelada') NOT NULL
 );
 
--- Tabla: estado
-CREATE TABLE estado (
+-- Tabla: estados
+CREATE TABLE estados (
   id_estado INT AUTO_INCREMENT PRIMARY KEY,
   nombre_estado VARCHAR(100) NOT NULL UNIQUE
 );
 
--- Tabla: ciudad
-CREATE TABLE ciudad (
+-- Tabla: ciudades
+CREATE TABLE ciudades (
   id_ciudad INT AUTO_INCREMENT PRIMARY KEY,
   nombre_ciudad VARCHAR(100) NOT NULL,
   id_estado INT NOT NULL,
-  FOREIGN KEY (id_estado) REFERENCES estado(id_estado)
+  FOREIGN KEY (id_estado) REFERENCES estados(id_estado)
 );
 
--- Tabla: ubicacion
-CREATE TABLE ubicacion (
+-- Tabla: ubicaciones
+CREATE TABLE ubicaciones (
   id_ubicacion INT AUTO_INCREMENT PRIMARY KEY,
   direccion VARCHAR(255),
   codigo_postal VARCHAR(10),
   id_ciudad INT NOT NULL,
-  FOREIGN KEY (id_ciudad) REFERENCES ciudad(id_ciudad)
+  FOREIGN KEY (id_ciudad) REFERENCES ciudades(id_ciudad)
 );
 
--- Tabla: escuela
-CREATE TABLE escuela (
+-- Tabla: escuelas
+CREATE TABLE escuelas (
   id_escuela INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   id_ubicacion INT,
-  FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id_ubicacion)
+  FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
 -- Tabla: rol
-CREATE TABLE rol (
+CREATE TABLE roles (
   id_rol INT AUTO_INCREMENT PRIMARY KEY,
     nombre_rol ENUM('alumno','administrador') NOT NULL
 );
 
 -- Tabla: usuario
-CREATE TABLE usuario (
+CREATE TABLE usuarios (
   id_usuario INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   apellido VARCHAR(100) NOT NULL,
@@ -88,32 +89,31 @@ CREATE TABLE usuario (
   id_rol INT NOT NULL,
   id_escuela INT NOT NULL,
   id_ubicacion INT,
-  FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
-  FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela),
-  FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id_ubicacion)
+  FOREIGN KEY (id_rol) REFERENCES roles(id_rol),
+  FOREIGN KEY (id_escuela) REFERENCES escuelas(id_escuela),
+  FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
--- Tabla: comentarios y sugerencias de alumnos
-CREATE TABLE comentario_alumno (
+CREATE TABLE comentarios_alumnos (
   id_comentario INT AUTO_INCREMENT PRIMARY KEY,
   id_alumno INT NOT NULL,
   contenido TEXT NOT NULL,
   fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id_alumno) REFERENCES usuario(id_usuario)
+  FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
 
 -- Tabla: administrador
-CREATE TABLE administrador (
+CREATE TABLE administradores (
   id_admin INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario INT NOT NULL UNIQUE,
   fecha_asignacion DATE,
-  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
 -- Tabla: donador
-CREATE TABLE donador (
+CREATE TABLE donadores (
   id_donador INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   rfc VARCHAR(12) NOT NULL UNIQUE,
@@ -122,33 +122,33 @@ CREATE TABLE donador (
   correo VARCHAR(150) NOT NULL,
   contrasena VARCHAR(255) NOT NULL,
   id_ubicacion INT NOT NULL,
-  FOREIGN KEY (id_ubicacion) REFERENCES ubicacion(id_ubicacion)
+  FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
 -- Tabla: donacion
-CREATE TABLE donacion (
+CREATE TABLE donaciones (
   id_donacion INT AUTO_INCREMENT PRIMARY KEY,
   id_donador INT NOT NULL,
   id_escuela INT NOT NULL,
   fecha_donacion DATE NOT NULL,
   id_estado_donacion INT NOT NULL,
-  FOREIGN KEY (id_donador) REFERENCES donador(id_donador),
-  FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela),
-  FOREIGN KEY (id_estado_donacion) REFERENCES estado_donacion(id_estado_donacion)
+  FOREIGN KEY (id_donador) REFERENCES donadores(id_donador),
+  FOREIGN KEY (id_escuela) REFERENCES escuelas(id_escuela),
+  FOREIGN KEY (id_estado_donacion) REFERENCES estados_donaciones(id_estado_donacion)
 );
 
 -- Tabla: detalle_donacion
-CREATE TABLE detalle_donacion (
+CREATE TABLE detalle_donaciones (
   id_detalle_donacion INT AUTO_INCREMENT PRIMARY KEY,
   id_donacion INT NOT NULL,
   id_producto INT NOT NULL,
   cantidad INT CHECK (cantidad > 0),
-  FOREIGN KEY (id_donacion) REFERENCES donacion(id_donacion),
-  FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+  FOREIGN KEY (id_donacion) REFERENCES donaciones(id_donacion),
+  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
 );
 
 -- Tabla: stock
-CREATE TABLE stock (
+CREATE TABLE stocks (
   id_stock INT AUTO_INCREMENT PRIMARY KEY,
   id_producto INT NOT NULL,
   id_escuela INT NOT NULL,
@@ -158,60 +158,59 @@ CREATE TABLE stock (
   fecha_entrada DATE,
   fecha_salida DATE,
   fecha_actualizacion DATE,
-  FOREIGN KEY (id_producto) REFERENCES producto(id_producto),
-  FOREIGN KEY (id_escuela) REFERENCES escuela(id_escuela)
+  FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
+  FOREIGN KEY (id_escuela) REFERENCES escuelas(id_escuela)
 );
 
 -- Tabla: paquete
-CREATE TABLE paquete (
+CREATE TABLE paquetes (
   id_paquete INT AUTO_INCREMENT PRIMARY KEY,
   nombre DATE NOT NULL,
   descripcion TEXT,
   fecha_creacion DATE NOT NULL,
   id_admin INT NOT NULL,
-  FOREIGN KEY (id_admin) REFERENCES administrador(id_admin)
+  FOREIGN KEY (id_admin) REFERENCES administradores(id_admin)
 );
 
 -- Tabla pivote: paquete_stock
-CREATE TABLE paquete_stock (
+CREATE TABLE paquetes_stock (
   id_paquete INT,
   id_stock INT,
   cantidad INT CHECK (cantidad > 0),
   PRIMARY KEY (id_paquete, id_stock),
-  FOREIGN KEY (id_paquete) REFERENCES paquete(id_paquete),
-  FOREIGN KEY (id_stock) REFERENCES stock(id_stock)
+  FOREIGN KEY (id_paquete) REFERENCES paquetes(id_paquete),
+  FOREIGN KEY (id_stock) REFERENCES stocks(id_stock)
 );
 
--- Tabla: entrega
-CREATE TABLE entrega (
+CREATE TABLE entregas (
   id_entrega INT AUTO_INCREMENT PRIMARY KEY,
   fecha DATE NOT NULL,
   id_paquete INT NOT NULL,
   id_alumno INT NOT NULL,
-  FOREIGN KEY (id_paquete) REFERENCES paquete(id_paquete),
-  FOREIGN KEY (id_alumno) REFERENCES usuario(id_usuario)
+  FOREIGN KEY (id_paquete) REFERENCES paquetes(id_paquete),
+  FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario)
 );
 
 -- Tabla: alergia
-CREATE TABLE alergia (
+CREATE TABLE alergias (
   id_alergia INT AUTO_INCREMENT PRIMARY KEY,
   descripcion_alergia VARCHAR(255)
 );
 
--- Tabla pivote: usuario_alergia
-CREATE TABLE usuario_alergia (
+-- Tabla pivote: usuarios_alergia
+CREATE TABLE usuarios_alergias (
   id_usuario INT,
   id_alergia INT,
   PRIMARY KEY (id_usuario, id_alergia),
-  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
-  FOREIGN KEY (id_alergia) REFERENCES alergia(id_alergia)
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_alergia) REFERENCES alergias(id_alergia)
 );
 
 -- Triggers: Validación de fecha de caducidad
 DELIMITER $$
 
 CREATE TRIGGER trg_validar_fecha_caducidad_insert
-BEFORE INSERT ON producto
+BEFORE INSERT ON productos
 FOR EACH ROW
 BEGIN
   IF NEW.fecha_caducidad < CURDATE() THEN
@@ -221,7 +220,7 @@ BEGIN
 END$$
 
 CREATE TRIGGER trg_validar_fecha_caducidad_update
-BEFORE UPDATE ON producto
+BEFORE UPDATE ON productos
 FOR EACH ROW
 BEGIN
   IF NEW.fecha_caducidad < CURDATE() THEN
@@ -240,12 +239,12 @@ CREATE PROCEDURE registrar_entrega (
 )
 BEGIN
   -- Insertar entrega
-  INSERT INTO entrega (id_alumno, id_paquete, fecha)
+  INSERT INTO entregas (id_alumno, id_paquete, fecha)
   VALUES (alumno_id, paquete_id, entrega_fecha);
 
   -- Actualizar stock por cada producto del paquete
-  UPDATE stock s
-  JOIN paquete_stock ps ON s.id_stock = ps.id_stock
+  UPDATE stocks s
+  JOIN paquetes_stock ps ON s.id_stock = ps.id_stock
   SET 
     s.cantidad_disponible = s.cantidad_disponible - ps.cantidad,
     s.cantidad_salida = s.cantidad_salida + ps.cantidad,
@@ -269,17 +268,17 @@ BEGIN
   DECLARE nueva_donacion_id INT;
 
   -- Insertar donación
-  INSERT INTO donacion (id_donador, id_escuela, id_estado_donacion, fecha_donacion)
+  INSERT INTO donaciones (id_donador, id_escuela, id_estado_donacion, fecha_donacion)
   VALUES (donador_id, escuela_id, estado_id, CURDATE());
 
   SET nueva_donacion_id = LAST_INSERT_ID();
   
   -- Insertar detalle
-  INSERT INTO detalle_donacion (id_donacion, id_producto, cantidad)
+  INSERT INTO detalle_donaciones (id_donacion, id_producto, cantidad)
   VALUES (nueva_donacion_id, producto_id, cantidad);
 
   -- Actualizar stock
-  INSERT INTO stock (id_producto, id_escuela, cantidad_disponible, cantidad_entrada, fecha_entrada, fecha_actualizacion)
+  INSERT INTO stocks (id_producto, id_escuela, cantidad_disponible, cantidad_entrada, fecha_entrada, fecha_actualizacion)
   VALUES (producto_id, escuela_id, cantidad, cantidad, CURDATE(), CURDATE())
   ON DUPLICATE KEY UPDATE
     cantidad_disponible = cantidad_disponible + cantidad,
@@ -295,9 +294,8 @@ DELIMITER ;
 -- ==========================
 
 SET FOREIGN_KEY_CHECKS = 0;
-
--- Tabla: conversacion
-CREATE TABLE IF NOT EXISTS conversacion (
+-- Tabla: conversaciones
+CREATE TABLE IF NOT EXISTS conversaciones (
   id_conversacion INT AUTO_INCREMENT PRIMARY KEY,
   asunto VARCHAR(255),
   fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -305,21 +303,21 @@ CREATE TABLE IF NOT EXISTS conversacion (
   estado ENUM('abierta','cerrada') DEFAULT 'abierta'
 );
 
--- Tabla: conversacion_participante
-CREATE TABLE IF NOT EXISTS conversacion_participante (
+-- Tabla: conversacion_participante (plural)
+CREATE TABLE IF NOT EXISTS conversacion_participantes (
   id_participante INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
   id_usuario INT NULL,
   id_donador INT NULL,
   rol ENUM('administrador','donador') NOT NULL,
-  FOREIGN KEY (id_conversacion) REFERENCES conversacion(id_conversacion) ON DELETE CASCADE,
-  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
-  FOREIGN KEY (id_donador) REFERENCES donador(id_donador),
+  FOREIGN KEY (id_conversacion) REFERENCES conversaciones(id_conversacion) ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_donador) REFERENCES donadores(id_donador),
   CONSTRAINT chk_participante_unico CHECK ( (id_usuario IS NOT NULL AND id_donador IS NULL) OR (id_usuario IS NULL AND id_donador IS NOT NULL) )
 );
 
--- Tabla: mensaje
-CREATE TABLE IF NOT EXISTS mensaje (
+-- Tabla: mensajes
+CREATE TABLE IF NOT EXISTS mensajes (
   id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
   id_usuario INT NULL,
@@ -327,21 +325,21 @@ CREATE TABLE IF NOT EXISTS mensaje (
   contenido TEXT NOT NULL,
   fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
   leido BOOLEAN DEFAULT FALSE,
-  FOREIGN KEY (id_conversacion) REFERENCES conversacion(id_conversacion) ON DELETE CASCADE,
-  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
-  FOREIGN KEY (id_donador) REFERENCES donador(id_donador),
+  FOREIGN KEY (id_conversacion) REFERENCES conversaciones(id_conversacion) ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_donador) REFERENCES donadores(id_donador),
   CONSTRAINT chk_mensaje_emisor CHECK ( (id_usuario IS NOT NULL AND id_donador IS NULL) OR (id_usuario IS NULL AND id_donador IS NOT NULL) )
 );
 
-CREATE INDEX IF NOT EXISTS idx_mensaje_conversacion_fecha ON mensaje (id_conversacion, fecha_envio);
+CREATE INDEX IF NOT EXISTS idx_mensaje_conversacion_fecha ON mensajes (id_conversacion, fecha_envio);
 
 -- Trigger para actualizar fecha_ultimo_mensaje en la conversación
 DELIMITER $$
 CREATE TRIGGER trg_update_fecha_ultimo_mensaje
-AFTER INSERT ON mensaje
+AFTER INSERT ON mensajes
 FOR EACH ROW
 BEGIN
-  UPDATE conversacion
+  UPDATE conversaciones
   SET fecha_ultimo_mensaje = NEW.fecha_envio
   WHERE id_conversacion = NEW.id_conversacion;
 END$$

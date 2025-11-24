@@ -5,22 +5,22 @@ Este documento describe el modelo lógico actualizado de la base de datos para e
 
 ## Entidades Principales (resumen lógico)
 
-- `tipo_producto`: Catálogo de tipos de producto (Frutas, Verduras, Enlatados, Pan, Lacteos, Cereales, Bebidas).
-- `producto`: Productos donados; atributos principales: `id_producto`, `nombre`, `fecha_caducidad`, `id_tipo_producto`.
-- `donador`: Personas o instituciones donantes; `id_donador`, `nombre` (o razon_social), `rfc`, `telefono`, `correo`, `id_ubicacion`.
-- `donacion`: Cabecera de donación; `id_donacion`, `id_donador`, `id_escuela`, `fecha_donacion`, `id_estado_donacion`.
-- `detalle_donacion`: Líneas de donación que relacionan `donacion` con `producto` y `cantidad`.
-- `estado_donacion`: Catálogo de estados de donación (`pendiente`, `entregada`, `cancelada`).
-- `escuela`: Instituciones beneficiarias; `id_escuela`, `nombre`, `id_ubicacion`.
+- `tipos_productos`: Catálogo de tipos de producto (Frutas, Verduras, Enlatados, Pan, Lacteos, Cereales, Bebidas).
+- `productos`: Productos donados; atributos principales: `id_producto`, `nombre`, `fecha_caducidad`, `id_tipo_producto`.
+- `donadores`: Personas o instituciones donantes; `id_donador`, `nombre` (o razon_social), `rfc`, `telefono`, `correo`, `id_ubicacion`.
+- `donaciones`: Cabecera de donación; `id_donacion`, `id_donador`, `id_escuela`, `fecha_donacion`, `id_estado_donacion`.
+- `detalle_donaciones`: Líneas de donación que relacionan `donaciones` con `productos` y `cantidad`.
+- `estados_donaciones`: Catálogo de estados de donación (`pendiente`, `entregada`, `cancelada`).
+- `escuelas`: Instituciones beneficiarias; `id_escuela`, `nombre`, `id_ubicacion`.
 - `ubicacion / ciudad / estado`: Jerarquía para la localización geográfica.
-- `rol` y `usuario`: Usuarios del sistema; `usuario` contiene alumnos y administradores, `rol` define el tipo.
-- `administrador`: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
-- `stock`: Inventario por `producto` y `escuela` (cantidad_disponible, entradas/salidas, fechas).
-- `paquete` y `paquete_stock`: Paquetes predefinidos y su relación con `stock` (tabla pivote con cantidad por item).
-- `entrega`: Registro de entregas de paquetes a alumnos (`id_entrega`, `fecha`, `id_paquete`, `id_alumno`).
-- `alergia` y `usuario_alergia`: Catálogo de alergias y relación muchos-a-muchos con usuarios.
-- `comentario_alumno`: Comentarios/sugerencias enviados por alumnos.
-- Mensajería: `conversacion`, `conversacion_participante`, `mensaje` — permite comunicación entre administradores (`usuario`) y donadores.
+- `roles` y `usuarios`: Usuarios del sistema; `usuarios` contiene alumnos y administradores, `roles` define el tipo.
+- `administradores`: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
+- `stocks`: Inventario por `productos` y `escuelas` (cantidad_disponible, entradas/salidas, fechas).
+- `paquetes` y `paquetes_stock`: Paquetes predefinidos y su relación con `stocks` (tabla pivote con cantidad por item).
+- `entregas`: Registro de entregas de paquetes a alumnos (`id_entrega`, `fecha`, `id_paquete`, `id_alumno`).
+- `alergias` y `usuarios_alergias`: Catálogo de alergias y relación muchos-a-muchos con usuarios.
+- `comentarios_alumnos`: Comentarios/sugerencias enviados por alumnos.
+- Mensajería: `conversaciones`, `conversacion_participantes`, `mensajes` — permite comunicación entre administradores (`usuarios`) y donadores.
 
 ## Relaciones (principales)
 

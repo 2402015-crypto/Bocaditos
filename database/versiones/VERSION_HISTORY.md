@@ -16,13 +16,13 @@ Primera versión del esquema de base de datos para el sistema de donaciones alim
 ### Componentes Incluidos
 
 #### Tablas Principales (7 tablas)
-1. **donador** - Información de donadores (personas o instituciones)
-2. **donacion** - Registro de donaciones con cantidad y destino
-3. **administrador** - Personal que gestiona entregas en la escuela
-4. **alumno** - Estudiantes beneficiarios del programa
-5. **comida** - Catálogo de alimentos donados con fechas de caducidad
-6. **entrega** - Registro de entregas de donaciones
-7. **escuela** - Datos de la escuela.
+1. **donadores** - Información de donadores (personas o instituciones)
+2. **donaciones** - Registro de donaciones con cantidad y destino
+3. **administradores** - Personal que gestiona entregas en la escuela
+4. **alumnos** - Estudiantes beneficiarios del programa
+5. **productos** - Catálogo de alimentos donados con fechas de caducidad
+6. **entregas** - Registro de entregas de donaciones
+7. **escuelas** - Datos de la escuela.
 
 ---
 
@@ -36,8 +36,8 @@ Actualización importante del esquema con nuevas funcionalidades (sistema de men
 
 ### Cambios principales
 - Añadido sistema de mensajería entre administradores y donadores:
-	- Tablas: `conversacion`, `conversacion_participante`, `mensaje`.
-	- Trigger `trg_update_fecha_ultimo_mensaje` para mantener `conversacion.fecha_ultimo_mensaje` actualizado.
+	- Tablas: `conversaciones`, `conversacion_participantes`, `mensajes`.
+	- Trigger `trg_update_fecha_ultimo_mensaje` para mantener `conversaciones.fecha_ultimo_mensaje` actualizado.
 - Correcciones en el DDL principal (`01_create_schema.sql`):
 	- `paquete.nombre` cambiado a `VARCHAR(100)` (antes `DATE`).
 	- Columnas con caracteres especiales renombradas de `contraseña` a `contrasena` para evitar problemas de encoding/compatibilidad.
