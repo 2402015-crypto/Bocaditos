@@ -15,7 +15,7 @@ Este documento describe el modelo lógico actualizado de la base de datos para e
 - `ubicacion / ciudad / estado`: Jerarquía para la localización geográfica.
 - `roles` y `usuarios`: Usuarios del sistema; `usuarios` contiene alumnos y administradores, `roles` define el tipo.
 - `administradores`: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
-- `stocks`: Inventario por `productos` y `escuelas` (cantidad_disponible, entradas/salidas, fechas).
+ - `stocks`: Inventario por `productos` y `escuelas` (entradas/salidas y fechas). La cantidad disponible se calcula mediante la vista `vw_stock_disponible` como `cantidad_entrada - cantidad_salida`.
 - `paquetes` y `paquetes_stock`: Paquetes predefinidos y su relación con `stocks` (tabla pivote con cantidad por item).
 - `entregas`: Registro de entregas de paquetes a alumnos (`id_entrega`, `fecha`, `id_paquete`, `id_alumno`).
 - `alergias` y `usuarios_alergias`: Catálogo de alergias y relación muchos-a-muchos con usuarios.

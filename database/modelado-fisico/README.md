@@ -29,7 +29,7 @@ Esta sección resume el modelo físico actual tal como está definido en `databa
 - `donador`: `id_donador` (PK), `nombre`, `rfc` (UNIQUE), `razon_social`, `telefono`, `correo`, `contrasena`, `id_ubicacion` (FK).
 - `donacion`: `id_donacion` (PK), `id_donador` (FK), `id_escuela` (FK), `fecha_donacion`, `id_estado_donacion` (FK).
 - `detalle_donacion`: `id_detalle_donacion` (PK), `id_donacion` (FK), `id_producto` (FK), `cantidad` (CHECK > 0).
-- `stock`: `id_stock` (PK), `id_producto` (FK), `id_escuela` (FK), `cantidad_disponible`, `cantidad_entrada`, `cantidad_salida`, fechas (entrada/salida/actualizacion). Considerar índice UNIQUE `(id_producto,id_escuela)` si se usa `ON DUPLICATE KEY`.
+-- `stocks`: `id_stock` (PK), `id_producto` (FK), `id_escuela` (FK), `cantidad_entrada`, `cantidad_salida`, fechas (entrada/salida). La columna `cantidad_disponible` fue removida y se calcula mediante la vista `vw_stock_disponible` (cantidad_entrada - cantidad_salida). Se creó un índice UNIQUE `(id_producto,id_escuela)` para soportar `INSERT ... ON DUPLICATE KEY UPDATE`.
 - `paquete`: `id_paquete` (PK), `nombre`, `descripcion`, `fecha_creacion`, `id_admin` (FK).
 - `paquete_stock`: pivote (`id_paquete`, `id_stock`) PK compuesta, `cantidad`.
 - `entrega`: `id_entrega` (PK), `fecha`, `id_paquete` (FK), `id_alumno` (FK->usuario).
