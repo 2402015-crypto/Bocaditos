@@ -6,15 +6,16 @@
 -- Motor: MySQL/MariaDB
 -- ============================================
 
+
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Crear base de datos
-CREATE DATABASE IF NOT EXISTS `bocaditos_db`
+CREATE DATABASE IF NOT EXISTS `bocadito_db`
     DEFAULT CHARACTER SET utf8mb4
     COLLATE utf8mb4_general_ci;
 
-USE `bocaditos_db`;
+USE `bocadito_db`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Tabla: tipos_productos
@@ -150,7 +151,6 @@ CREATE TABLE detalle_donaciones (
 );
 
 -- Tabla: stocks
--- Nota: eliminamos `cantidad_disponible` y `fecha_actualizacion`.
 -- La cantidad disponible se calcula como (cantidad_entrada - cantidad_salida)
 CREATE TABLE stocks (
   id_stock INT AUTO_INCREMENT PRIMARY KEY,
@@ -318,8 +318,8 @@ CREATE TABLE IF NOT EXISTS conversaciones (
   estado ENUM('abierta','cerrada') DEFAULT 'abierta'
 );
 
--- Participantes: mantiene quién participa en cada conversación (usuario o donador)
-CREATE TABLE IF NOT EXISTS conversacion_participantes (
+-- Tabla: registro_conversaciones
+CREATE TABLE IF NOT EXISTS registro_conversaciones (
   id_participante INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
   tipo_participante ENUM('usuario','donador') NOT NULL,
@@ -328,7 +328,7 @@ CREATE TABLE IF NOT EXISTS conversacion_participantes (
   FOREIGN KEY (id_conversacion) REFERENCES conversaciones(id_conversacion) ON DELETE CASCADE
 );
 
--- Mensajes: más simple y consistente — guardamos tipo y id del emisor
+-- Tabla: mensajes
 CREATE TABLE IF NOT EXISTS mensajes (
   id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
