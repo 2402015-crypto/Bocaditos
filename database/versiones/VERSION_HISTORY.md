@@ -46,3 +46,34 @@ Actualización importante del esquema con nuevas funcionalidades (sistema de men
 
 ### Archivos añadidos/actualizados
 - `database/sql/ddl/01_create_schema.sql` — actualizado (v2.0.0): correcciones, procedimientos, triggers y mensajería.
+
+---
+
+## Versión 2.1.0
+**Fecha de Lanzamiento**: 2025-11-25  
+**Estado**: Actual  
+**Tipo de Versión**: Mayor (esquema actualizado)
+
+### Descripción
+Refactor y mejoras importantes del esquema de base de datos para soportar mejor el flujo de entregas/paquetes, control de stock y gestión de ubicaciones.
+
+### Cambios principales
+- Se pluralizaron nombres y estandarizaron comentarios en el DDL (`-- TABLA: ...`).
+- Añadida tabla `estados_entregas` para modelar estados de entregas y donaciones (p.ej. pendiente, entregado, cancelado).
+- `ubicaciones` ahora incorpora `id_estado` además de `id_ciudad` para permitir elegir estado/ciudad o crear una ubicación nueva (se mantiene compatibilidad con flujos existentes).
+- `donadores` ampliada con campos para empresa y representante (soporte a donantes institucionales).
+- Refactor de `stocks` para usar registros de entrada/salida (`cantidad_entrada`, `cantidad_salida`) y creación de la vista calculada `vw_stock_disponible` para consultar disponibilidad.
+- Nuevas tablas/relaciones para manejo de paquetes: `paquetes` y `paquetes_stock` (pivot) para agrupar unidades y registrar entregas por paquete.
+- Procedimientos almacenados añadidos/actualizados: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
+- Índices y constraints actualizados para mejorar integridad y rendimiento (ej. índices en `stocks`, unicity donde aplica).
+
+### Notas de migración y respaldo
+- Antes de ejecutar migraciones sobre datos existentes, crear un respaldo completo (por ejemplo con `mysqldump`).
+- Se preparó un script/consulta para poblar `ubicaciones.id_estado` desde `ciudades` cuando proceda; no se ejecutó de forma destructiva sin aprobación.
+
+### Archivos modificados
+- `database/sql/ddl/01_create_schema.sql` — refactor y nuevas definiciones (vista, procedimientos, tablas, índices).
+
+---
+
+*(Registro generado automáticamente el 2025-11-25 por el asistente de desarrollo — detalles en los commits asociados.)*
