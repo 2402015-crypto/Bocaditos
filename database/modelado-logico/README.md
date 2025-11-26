@@ -67,6 +67,25 @@ El modelo lógico está en Tercera Forma Normal (3FN):
 
 ## Diagramas y artefactos relacionados
 
-- Ver `database/modelado-logico/` para diagramas ER y documentación detallada por entidad.
-- Ver `database/sql/ddl/01_create_schema.sql` para la definición física y constraints.
+
+
+## Cambios recientes (2025-11-25)
+Resumen de cambios introducidos en la versión del DDL publicada el 2025-11-25.
+
+- Se estandarizaron nombres en plural y se actualizaron comentarios en el DDL.
+- Se introdujo la tabla de control `estados_entregas` para modelar estados de entregas/donaciones.
+- `ubicaciones` ahora contiene `id_estado` además de `id_ciudad` para dar soporte a la selección de estado/ciudad o creación de nuevas ubicaciones.
+- `donadores` ampliada para soportar donantes institucionales (campos `razon_social`, representante, etc.).
+- `stocks` refactorizado a entradas/salidas (`cantidad_entrada`, `cantidad_salida`) y nueva vista `vw_stock_disponible` para obtener `cantidad_disponible`.
+- Nuevas entidades para paquetes: `paquetes` y `paquetes_stock` (pivot) para agrupar items y gestionar entregas por paquete.
+- Procedimientos almacenados añadidos/actualizados para operaciones comunes: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
+
+Notas de migración:
+- Realizar respaldo antes de ejecutar cambios en datos de producción.
+- Se dejó preparada una consulta segura para poblar `ubicaciones.id_estado` desde `ciudades` si se decide aplicar la migración.
+
+Referencias:
+- `database/sql/ddl/01_create_schema.sql` (commit publicado en `main` con fecha 2025-11-25).
+
+```
 

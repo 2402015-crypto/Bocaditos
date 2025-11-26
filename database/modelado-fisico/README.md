@@ -175,3 +175,24 @@ long_query_time = 2
 log_bin = /var/log/mysql/mysql-bin.log
 expire_logs_days = 7
 ```
+
+---
+
+## Cambios recientes (2025-11-25)
+Se agregan aquí las notas de los cambios realizados en la versión del DDL publicada el 2025-11-25.
+
+- Pluralización y estandarización de nombres de objetos en el DDL.
+- Nueva tabla `estados_entregas` para modelar estados de entrega/donación.
+- `ubicaciones` ahora incluye `id_estado` además de `id_ciudad`; esto permite seleccionar estado/ciudad o crear una ubicación nueva en la UX.
+- `donadores` ampliada para soportar donantes institucionales (`razon_social`, representante, campos adicionales).
+- `stocks` fue refactorizada para registrar `cantidad_entrada` y `cantidad_salida`; se eliminó la columna calculada y se creó la vista `vw_stock_disponible` que expone `cantidad_disponible` = `cantidad_entrada - cantidad_salida`.
+- Introducción de `paquetes` y `paquetes_stock` (tabla pivote) para agrupar unidades y gestionar entregas por paquete.
+- Procedimientos almacenados añadidos/actualizados: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
+
+Notas de migración:
+- Antes de ejecutar migraciones sobre datos existentes hacer un respaldo completo (`mysqldump`).
+- Se preparó una consulta para poblar `ubicaciones.id_estado` desde `ciudades` si se desea ejecutar la migración de forma segura; no se ejecutó automáticamente.
+
+Referencias:
+- `database/sql/ddl/01_create_schema.sql` (commit reciente en `main`): revisión y objetos añadidos.
+
