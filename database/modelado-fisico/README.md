@@ -189,10 +189,6 @@ Se agregan aquí las notas de los cambios realizados en la versión del DDL publ
 - Introducción de `paquetes` y `paquetes_stock` (tabla pivote) para agrupar unidades y gestionar entregas por paquete.
 - Procedimientos almacenados añadidos/actualizados: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
 
-Notas de migración:
-- Antes de ejecutar migraciones sobre datos existentes hacer un respaldo completo (`mysqldump`).
-- Se preparó una consulta para poblar `ubicaciones.id_estado` desde `ciudades` si se desea ejecutar la migración de forma segura; no se ejecutó automáticamente.
-
 Referencias:
 - `database/sql/ddl/01_create_schema.sql` (commit reciente en `main`): revisión y objetos añadidos.
 

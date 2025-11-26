@@ -67,10 +67,6 @@ Refactor y mejoras importantes del esquema de base de datos para soportar mejor 
 - Procedimientos almacenados añadidos/actualizados: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
 - Índices y constraints actualizados para mejorar integridad y rendimiento (ej. índices en `stocks`, unicity donde aplica).
 
-### Notas de migración y respaldo
-- Antes de ejecutar migraciones sobre datos existentes, crear un respaldo completo (por ejemplo con `mysqldump`).
-- Se preparó un script/consulta para poblar `ubicaciones.id_estado` desde `ciudades` cuando proceda; no se ejecutó de forma destructiva sin aprobación.
-
 ### Archivos modificados
 - `database/sql/ddl/01_create_schema.sql` — refactor y nuevas definiciones (vista, procedimientos, tablas, índices).
 

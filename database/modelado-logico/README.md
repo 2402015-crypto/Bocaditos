@@ -80,10 +80,6 @@ Resumen de cambios introducidos en la versión del DDL publicada el 2025-11-25.
 - Nuevas entidades para paquetes: `paquetes` y `paquetes_stock` (pivot) para agrupar items y gestionar entregas por paquete.
 - Procedimientos almacenados añadidos/actualizados para operaciones comunes: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
 
-Notas de migración:
-- Realizar respaldo antes de ejecutar cambios en datos de producción.
-- Se dejó preparada una consulta segura para poblar `ubicaciones.id_estado` desde `ciudades` si se decide aplicar la migración.
-
 Referencias:
 - `database/sql/ddl/01_create_schema.sql` (commit publicado en `main` con fecha 2025-11-25).
 
