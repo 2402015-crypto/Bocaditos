@@ -2,7 +2,7 @@
 -- Script de Creación de Base de Datos
 -- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
 -- Versión: 2.0.2
--- Fecha: 2025-11-24
+-- Fecha: 2025-11-25
 -- Motor: MySQL/MariaDB
 -- ============================================
 
@@ -18,13 +18,13 @@ CREATE DATABASE IF NOT EXISTS `bocadito_db`
 USE `bocadito_db`;
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Tabla: tipos_productos
+-- TABLA: tipos_productos - Catálogo de tipos de producto (categorías usadas por `productos`).
 CREATE TABLE tipos_productos (
   id_tipo_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre_tipo ENUM('Frutas', 'Verduras', 'Enlatados', 'Pan', 'Lacteos', 'Cereales', 'Bebidas') NOT NULL
 );
 
--- Tabla: productos
+-- TABLA: productos - Lista de productos donados; referencia al tipo y fecha de caducidad.
 CREATE TABLE productos (
   id_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -34,19 +34,23 @@ CREATE TABLE productos (
 );
 
  
--- Tabla: estados_donaciones
-CREATE TABLE estados_donaciones (
-  id_estado_donacion INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_estado ENUM('pendiente','entregada','cancelada') NOT NULL
+-- TABLA: estados_entregas - Estados usados por donaciones y entregas (pendiente/entregada/cancelada).
+CREATE TABLE estados_entregas (
+  id_estado_entrega INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_estado ENUM('pendiente','entregada','cancelada') NOT NULL UNIQUE
 );
+-- Valores por defecto para estados de entrega/donación
+INSERT INTO estados_entregas (nombre_estado) VALUES ('pendiente') ON DUPLICATE KEY UPDATE nombre_estado = nombre_estado;
+INSERT INTO estados_entregas (nombre_estado) VALUES ('entregada') ON DUPLICATE KEY UPDATE nombre_estado = nombre_estado;
+INSERT INTO estados_entregas (nombre_estado) VALUES ('cancelada') ON DUPLICATE KEY UPDATE nombre_estado = nombre_estado;
 
--- Tabla: estados
+-- TABLA: estados - Catálogo genérico de estados (usado por ciudades/ubicaciones).
 CREATE TABLE estados (
   id_estado INT AUTO_INCREMENT PRIMARY KEY,
   nombre_estado VARCHAR(100) NOT NULL UNIQUE
 );
 
--- Tabla: ciudades
+-- TABLA: ciudades - Ciudades con FK a `estados`.
 CREATE TABLE ciudades (
   id_ciudad INT AUTO_INCREMENT PRIMARY KEY,
   nombre_ciudad VARCHAR(100) NOT NULL,
@@ -54,18 +58,22 @@ CREATE TABLE ciudades (
   FOREIGN KEY (id_estado) REFERENCES estados(id_estado)
 );
 
--- Tabla: ubicaciones
+-- TABLA: ubicaciones - Direcciones físicas que apuntan a una ciudad.
 CREATE TABLE ubicaciones (
   id_ubicacion INT AUTO_INCREMENT PRIMARY KEY,
   direccion VARCHAR(255),
   codigo_postal VARCHAR(10),
-  id_ciudad INT NOT NULL,
+  id_estado INT NOT NULL,
+  id_ciudad INT NULL,
+  FOREIGN KEY (id_estado) REFERENCES estados(id_estado),
   FOREIGN KEY (id_ciudad) REFERENCES ciudades(id_ciudad)
 );
 
+-- Índices para consultas por estado/ciudad
 CREATE INDEX IF NOT EXISTS idx_ubicaciones_ciudad ON ubicaciones (id_ciudad);
+CREATE INDEX IF NOT EXISTS idx_ubicaciones_estado ON ubicaciones (id_estado);
 
--- Tabla: escuelas
+-- TABLA: escuelas - Escuelas beneficiarias; opcionalmente apuntan a una ubicación.
 CREATE TABLE escuelas (
   id_escuela INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -73,13 +81,13 @@ CREATE TABLE escuelas (
   FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
--- Tabla: rol
+-- TABLA: roles - Roles de usuario (alumno o administrador).
 CREATE TABLE roles (
   id_rol INT AUTO_INCREMENT PRIMARY KEY,
     nombre_rol ENUM('alumno','administrador') NOT NULL
 );
 
--- Tabla: usuario
+-- TABLA: usuarios - Usuarios del sistema (alumnos); credenciales y referencias a rol/escuela.
 CREATE TABLE usuarios (
   id_usuario INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -97,6 +105,7 @@ CREATE TABLE usuarios (
   FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
+-- TABLA: comentarios_alumnos - Comentarios hechos por alumnos; FK a `usuarios`.
 CREATE TABLE comentarios_alumnos (
   id_comentario INT AUTO_INCREMENT PRIMARY KEY,
   id_alumno INT NOT NULL,
@@ -107,7 +116,7 @@ CREATE TABLE comentarios_alumnos (
     ON UPDATE CASCADE
 );
 
--- Tabla: administrador
+-- TABLA: administradores - Tabla que marca qué `usuario` es administrador con fecha de asignación.
 CREATE TABLE administradores (
   id_admin INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario INT NOT NULL UNIQUE,
@@ -115,32 +124,38 @@ CREATE TABLE administradores (
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
--- Tabla: donador
+-- TABLA: donadores - Registro de donadores/empresas y datos del representante responsable de la donación.
 CREATE TABLE donadores (
   id_donador INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
-  rfc VARCHAR(12) NOT NULL UNIQUE,
+  nombre_empresa VARCHAR(100) NOT NULL,
+  rfc_empresa VARCHAR(12) NOT NULL UNIQUE,
   razon_social VARCHAR(100) NOT NULL,
-  telefono VARCHAR(15) NOT NULL,
-  correo VARCHAR(150) NOT NULL,
+  empresa_telefono VARCHAR(15),
+  empresa_correo VARCHAR(150),
   contrasena VARCHAR(255) NOT NULL,
   id_ubicacion INT NOT NULL,
+  -- Datos del representante/contacto que realiza la donación (persona encargada)
+  representante_nombre VARCHAR(100),
+  representante_telefono VARCHAR(15),
+  representante_correo VARCHAR(150),
+  representante_cargo VARCHAR(100),
   FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
--- Tabla: donacion
+-- TABLA: donaciones - Cabecera de una donación hecha por un donador a una escuela.
+-- TABLA: donaciones - Cabecera de una donación hecha por un donador a una escuela.
 CREATE TABLE donaciones (
   id_donacion INT AUTO_INCREMENT PRIMARY KEY,
   id_donador INT NOT NULL,
   id_escuela INT NOT NULL,
   fecha_donacion DATE NOT NULL,
-  id_estado_donacion INT NOT NULL,
+  id_estado_entrega INT NOT NULL,
   FOREIGN KEY (id_donador) REFERENCES donadores(id_donador),
   FOREIGN KEY (id_escuela) REFERENCES escuelas(id_escuela),
-  FOREIGN KEY (id_estado_donacion) REFERENCES estados_donaciones(id_estado_donacion)
+  FOREIGN KEY (id_estado_entrega) REFERENCES estados_entregas(id_estado_entrega)
 );
 
--- Tabla: detalle_donacion
+-- TABLA: detalle_donaciones - Detalle por producto de cada donación (cantidad por producto).
 CREATE TABLE detalle_donaciones (
   id_detalle_donacion INT AUTO_INCREMENT PRIMARY KEY,
   id_donacion INT NOT NULL,
@@ -150,7 +165,7 @@ CREATE TABLE detalle_donaciones (
   FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
 );
 
--- Tabla: stocks
+-- TABLA: stocks - Control de inventario por `producto` y `escuela`; entradas y salidas acumuladas.
 -- La cantidad disponible se calcula como (cantidad_entrada - cantidad_salida)
 CREATE TABLE stocks (
   id_stock INT AUTO_INCREMENT PRIMARY KEY,
@@ -165,7 +180,7 @@ CREATE TABLE stocks (
   UNIQUE KEY uniq_producto_escuela (id_producto, id_escuela)
 );
 
--- Tabla: paquetes
+-- TABLA: paquetes - Paquetes predefinidos de productos que administra un `administrador`.
 CREATE TABLE paquetes (
   id_paquete INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -176,6 +191,7 @@ CREATE TABLE paquetes (
 );
 
 -- Tabla pivote: paquetes_stock
+-- TABLA: paquetes_stock - Relación muchos-a-muchos entre `paquetes` y `stocks` con cantidad por item.
 CREATE TABLE paquetes_stock (
   id_paquete INT,
   id_stock INT,
@@ -185,16 +201,7 @@ CREATE TABLE paquetes_stock (
   FOREIGN KEY (id_stock) REFERENCES stocks(id_stock)
 );
 
--- Tabla de estados para entregas
-CREATE TABLE estados_entregas (
-  id_estado_entrega INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_estado ENUM('pendiente','entregada','cancelada') NOT NULL UNIQUE
-);
--- Valores por defecto para estados de entregas
-INSERT INTO estados_entregas (nombre_estado) VALUES ('pendiente') ON DUPLICATE KEY UPDATE nombre_estado = nombre_estado;
-INSERT INTO estados_entregas (nombre_estado) VALUES ('entregada') ON DUPLICATE KEY UPDATE nombre_estado = nombre_estado;
-INSERT INTO estados_entregas (nombre_estado) VALUES ('cancelada') ON DUPLICATE KEY UPDATE nombre_estado = nombre_estado;
-
+-- TABLA: entregas - Registro de entregas realizadas a alumnos (relaciona paquete y alumno).
 CREATE TABLE entregas (
   id_entrega INT AUTO_INCREMENT PRIMARY KEY,
   fecha DATE NOT NULL,
@@ -207,12 +214,14 @@ CREATE TABLE entregas (
 );
 
 -- Tabla: alergia
+-- Breve: Catálogo de alergias que pueden tener los usuarios.
 CREATE TABLE alergias (
   id_alergia INT AUTO_INCREMENT PRIMARY KEY,
   descripcion_alergia VARCHAR(255)
 );
 
 -- Tabla pivote: usuarios_alergia
+-- Breve: Asociación N:M entre `usuarios` y `alergias`.
 CREATE TABLE usuarios_alergias (
   id_usuario INT,
   id_alergia INT,
@@ -222,6 +231,7 @@ CREATE TABLE usuarios_alergias (
 );
 
 -- Triggers: Validación de fecha de caducidad
+-- Breve: Evitan insertar/actualizar productos con fecha de caducidad pasada.
 DELIMITER $$
 
 CREATE TRIGGER trg_validar_fecha_caducidad_insert
@@ -254,10 +264,10 @@ CREATE PROCEDURE registrar_entrega (
 )
 BEGIN
   DECLARE estado_default INT;
-  -- obtener id de estado 'entregada' si existe
+  -- obtener id de estado 'entregada' si existe (usando `estados_entregas`)
   SELECT id_estado_entrega INTO estado_default FROM estados_entregas WHERE nombre_estado = 'entregada' LIMIT 1;
 
-  -- Insertar entrega con estado por defecto (si no existe, deberá insertarse manualmente en estados_entregas)
+  -- Insertar entrega con estado por defecto (si no existe, se usa id 1 por compatibilidad)
   INSERT INTO entregas (id_alumno, id_paquete, fecha, id_estado_entrega)
   VALUES (alumno_id, paquete_id, entrega_fecha, COALESCE(estado_default, 1));
 
@@ -284,8 +294,8 @@ CREATE PROCEDURE registrar_donacion (
 BEGIN
   DECLARE nueva_donacion_id INT;
 
-  -- Insertar donación
-  INSERT INTO donaciones (id_donador, id_escuela, id_estado_donacion, fecha_donacion)
+  -- Insertar donación (usa `id_estado_entrega` para el estado de la donación)
+  INSERT INTO donaciones (id_donador, id_escuela, id_estado_entrega, fecha_donacion)
   VALUES (donador_id, escuela_id, estado_id, CURDATE());
 
   SET nueva_donacion_id = LAST_INSERT_ID();
@@ -310,6 +320,7 @@ DELIMITER ;
 
 SET FOREIGN_KEY_CHECKS = 0;
 -- Tabla: conversaciones
+-- Breve: Conversaciones entre participantes; guarda metadatos y estado.
 CREATE TABLE IF NOT EXISTS conversaciones (
   id_conversacion INT AUTO_INCREMENT PRIMARY KEY,
   asunto VARCHAR(255),
@@ -319,6 +330,7 @@ CREATE TABLE IF NOT EXISTS conversaciones (
 );
 
 -- Tabla: registro_conversaciones
+-- Breve: Participantes de una conversación (usuario o donador) y su rol.
 CREATE TABLE IF NOT EXISTS registro_conversaciones (
   id_participante INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
@@ -329,6 +341,7 @@ CREATE TABLE IF NOT EXISTS registro_conversaciones (
 );
 
 -- Tabla: mensajes
+-- Breve: Mensajes de las conversaciones; `sender_type` permite remitente polimórfico.
 CREATE TABLE IF NOT EXISTS mensajes (
   id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
@@ -343,6 +356,7 @@ CREATE TABLE IF NOT EXISTS mensajes (
 CREATE INDEX IF NOT EXISTS idx_mensaje_conversacion_fecha ON mensajes (id_conversacion, fecha_envio);
 
 -- Trigger para actualizar fecha_ultimo_mensaje en la conversación
+-- Breve: Mantiene `fecha_ultimo_mensaje` sincronizada al insertar un nuevo mensaje.
 DELIMITER $$
 CREATE TRIGGER trg_update_fecha_ultimo_mensaje
 AFTER INSERT ON mensajes
@@ -357,6 +371,7 @@ DELIMITER ;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Vista: stock disponible calculado
+-- Breve: Vista que calcula la cantidad disponible por producto/escuela (no guarda datos).
 CREATE OR REPLACE VIEW vw_stock_disponible AS
 SELECT
   id_producto,
@@ -366,6 +381,7 @@ FROM stocks;
 
 DELIMITER $$
 -- Procedimiento: crear_paquete
+-- Breve: Crea un paquete y devuelve su id.
 CREATE PROCEDURE crear_paquete (
   IN p_admin_id INT,
   IN p_nombre VARCHAR(100),
@@ -378,6 +394,7 @@ BEGIN
 END$$
 
 -- Procedimiento: agregar_producto_a_paquete
+-- Breve: Añade o incrementa la cantidad de un stock dentro de un paquete.
 CREATE PROCEDURE agregar_producto_a_paquete (
   IN p_paquete_id INT,
   IN p_stock_id INT,
@@ -389,7 +406,7 @@ BEGIN
   ON DUPLICATE KEY UPDATE cantidad = cantidad + VALUES(cantidad);
 END$$
 
--- Procedimiento: entregar_paquete (usa paquetes_stock para decrementar stocks)
+-- PROCEDIMIENTO: entregar_paquete - Registra la entrega de un paquete a un alumno y ajusta stocks (aumentando salidas).
 CREATE PROCEDURE entregar_paquete (
   IN p_alumno_id INT,
   IN p_paquete_id INT,
