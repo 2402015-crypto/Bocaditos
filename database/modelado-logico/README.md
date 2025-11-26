@@ -1,26 +1,51 @@
-# Modelado Lógico de Base de Datos - Sistema Bocaditos
+# Modelado Lógico de Base de Datos — Bocaditos
 
-## Descripción General
-Este documento describe el modelo lógico actualizado de la base de datos para el sistema de donaciones alimentarias "Bocaditos" en UTRM. Está alineado con el script DDL principal `database/sql/ddl/01_create_schema.sql` (v2.0.1).
+Última revisión: 2025-11-25 (basado en `database/sql/ddl/01_create_schema.sql` v2.0.2)
 
-## Entidades Principales (resumen lógico)
+Este documento resume el modelo lógico actual y las decisiones importantes tomadas en el DDL. Está pensado para desarrolladores, responsables de migraciones y operadores.
 
-- `tipos_productos`: Catálogo de tipos de producto (Frutas, Verduras, Enlatados, Pan, Lacteos, Cereales, Bebidas).
-- `productos`: Productos donados; atributos principales: `id_producto`, `nombre`, `fecha_caducidad`, `id_tipo_producto`.
-- `donadores`: Personas o instituciones donantes; `id_donador`, `nombre` (o razon_social), `rfc`, `telefono`, `correo`, `id_ubicacion`.
-- `donaciones`: Cabecera de donación; `id_donacion`, `id_donador`, `id_escuela`, `fecha_donacion`, `id_estado_donacion`.
-- `detalle_donaciones`: Líneas de donación que relacionan `donaciones` con `productos` y `cantidad`.
-- `estados_donaciones`: Catálogo de estados de donación (`pendiente`, `entregada`, `cancelada`).
-- `escuelas`: Instituciones beneficiarias; `id_escuela`, `nombre`, `id_ubicacion`.
-- `ubicacion / ciudad / estado`: Jerarquía para la localización geográfica.
-- `roles` y `usuarios`: Usuarios del sistema; `usuarios` contiene alumnos y administradores, `roles` define el tipo.
-- `administradores`: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
- - `stocks`: Inventario por `productos` y `escuelas` (entradas/salidas y fechas). La cantidad disponible se calcula mediante la vista `vw_stock_disponible` como `cantidad_entrada - cantidad_salida`.
-- `paquetes` y `paquetes_stock`: Paquetes predefinidos y su relación con `stocks` (tabla pivote con cantidad por item).
-- `entregas`: Registro de entregas de paquetes a alumnos (`id_entrega`, `fecha`, `id_paquete`, `id_alumno`).
-- `alergias` y `usuarios_alergias`: Catálogo de alergias y relación muchos-a-muchos con usuarios.
-- `comentarios_alumnos`: Comentarios/sugerencias enviados por alumnos.
-- Mensajería: `conversaciones`, `conversacion_participantes`, `mensajes` — permite comunicación entre administradores (`usuarios`) y donadores.
+## Resumen ejecutivo
+
+- Propósito: soportar donaciones, control de inventario por escuela, empaquetado de entregas y comunicación entre administradores y donadores.
+- Cambios principales (v2.0.2): pluralización de objetos, creación de `estados_entregas`, adición de `ubicaciones.id_estado`, refactor de `stocks` a entradas/salidas, incorporación de `paquetes` y sistema de mensajería.
+
+## Entidades clave (resumen)
+
+- `tipos_productos`: catálogo de categorías.
+- `productos`: catálogo de productos con `fecha_caducidad` y FK a `tipos_productos`.
+- `estados_entregas`: catálogo para estados de donaciones/entregas (`pendiente`, `entregada`, `cancelada`).
+- `estados`, `ciudades`, `ubicaciones`: jerarquía de localización; `ubicaciones` incluye `id_estado` (NOT NULL) y `id_ciudad` (nullable) para soportar distintos flujos UX.
+- `escuelas`: beneficiarias con FK a `ubicaciones`.
+- `usuarios`, `roles`, `administradores`: gestión de usuarios y permisos.
+- `donadores`: soporta donantes institucionales y representante/contacto.
+- `donaciones`, `detalle_donaciones`: cabecera y líneas de donación.
+- `stocks`: inventario por `id_producto` y `id_escuela` con `cantidad_entrada` y `cantidad_salida`; `UNIQUE(id_producto,id_escuela)`.
+- `vw_stock_disponible`: vista que calcula `cantidad_disponible = cantidad_entrada - cantidad_salida`.
+- `paquetes`, `paquetes_stock`: definición de paquetes y relación pivot para cantidad por stock.
+- `entregas`: registro de entregas a alumnos, con FK a `paquetes` y `estados_entregas`.
+- Mensajería: `conversaciones`, `registro_conversaciones` (participantes polimórficos), `mensajes`.
+
+## Reglas de negocio y comportamientos
+
+1. Las donaciones y entregas usan `estados_entregas` para seguimiento.
+2. `detalle_donacion.cantidad` > 0 (CHECK).
+3. `producto.fecha_caducidad` es validada por triggers (no acepta fechas < CURDATE()).
+4. Las actualizaciones de inventario se manejan en `stocks`; procedimientos usan `ON DUPLICATE KEY UPDATE` para upserts.
+5. `vw_stock_disponible` es la fuente recomendada para consultas sobre disponibilidad.
+
+## Objetos operativos
+
+- Triggers:
+  - `trg_validar_fecha_caducidad_insert` / `trg_validar_fecha_caducidad_update` (valida caducidad de productos).
+  - `trg_update_fecha_ultimo_mensaje` (sincroniza `conversaciones.fecha_ultimo_mensaje`).
+- Vista: `vw_stock_disponible`.
+- Procedimientos: `registrar_donacion`, `registrar_entrega`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
+
+## Integridad y performance
+
+- FK definidas de manera amplia; índices en FKs. Índice único en `stocks` para soportar upserts y mejorar integridad de inventario.
+- Uso de ENUM y CHECK para valores cerrados y validaciones simples.
+
 
 ## Relaciones (principales)
 
@@ -35,14 +60,6 @@ Este documento describe el modelo lógico actualizado de la base de datos para e
 - Conversacion 1:N Mensaje
 - Conversacion 1:N Conversacion_participante (participantes pueden ser `usuario` o `donador`)
 
-## Reglas de Negocio (actualizadas)
-
-1. Cada donación debe estar asociada a un `donador` y a una `escuela` destino.
-2. `detalle_donacion.cantidad` debe ser mayor que 0 (CHECK).
-3. `producto.fecha_caducidad` no puede ser anterior a la fecha actual (validado por trigger).
-4. `stock` se actualiza cuando se registran donaciones y entregas (procedimientos `registrar_donacion` y `registrar_entrega`).
-5. Las conversaciones solo permiten participantes válidos: o un `usuario` o un `donador` (CHECK en `conversacion_participante`).
-6. Los mensajes deben tener un emisor válido (usuario o donador) y actualizan la fecha del último mensaje en la conversación mediante trigger.
 
 ## Normalización
 
@@ -50,34 +67,3 @@ El modelo lógico está en Tercera Forma Normal (3FN):
 - 1FN: Atributos atómicos.
 - 2FN: No hay dependencias parciales respecto a claves compuestas (PKs son simples donde corresponde).
 - 3FN: No hay dependencias transitivas; entidades lookup se han separado (estado, tipo_producto, alergia, etc.).
-
-## Tipos de Datos y convenciones
-
-- Identificadores: INT AUTO_INCREMENT
-- Textos cortos: VARCHAR (longitudes según campo)
-- Fechas: DATE / DATETIME
-- Booleanos: BOOLEAN / TINYINT(1)
-- Uso de ENUM para catálogos cerrados (`estado_donacion`, `rol`, `tipo_producto`)
-- Nombres de columnas: snake_case en minúsculas
-
-## Consideraciones de implementación
-
-- Gestionar borrados con `ON DELETE` coherente según reglas (p.ej. `ON DELETE CASCADE` en `conversacion_participante` para borrar participantes al eliminar conversación).
-
-
-## Cambios recientes (2025-11-25)
-Resumen de cambios introducidos en la versión del DDL publicada el 2025-11-25.
-
-- Se estandarizaron nombres en plural y se actualizaron comentarios en el DDL.
-- Se introdujo la tabla de control `estados_entregas` para modelar estados de entregas/donaciones.
-- `ubicaciones` ahora contiene `id_estado` además de `id_ciudad` para dar soporte a la selección de estado/ciudad o creación de nuevas ubicaciones.
-- `donadores` ampliada para soportar donantes institucionales (campos `razon_social`, representante, etc.).
-- `stocks` refactorizado a entradas/salidas (`cantidad_entrada`, `cantidad_salida`) y nueva vista `vw_stock_disponible` para obtener `cantidad_disponible`.
-- Nuevas entidades para paquetes: `paquetes` y `paquetes_stock` (pivot) para agrupar items y gestionar entregas por paquete.
-- Procedimientos almacenados añadidos/actualizados para operaciones comunes: `registrar_entrega`, `registrar_donacion`, `crear_paquete`, `agregar_producto_a_paquete`, `entregar_paquete`.
-
-Referencias:
-- `database/sql/ddl/01_create_schema.sql` (commit publicado en `main` con fecha 2025-11-25).
-
-```
-
