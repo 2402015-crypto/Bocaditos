@@ -65,10 +65,6 @@ El modelo lógico está en Tercera Forma Normal (3FN):
 - Gestionar borrados con `ON DELETE` coherente según reglas (p.ej. `ON DELETE CASCADE` en `conversacion_participante` para borrar participantes al eliminar conversación).
 
 
-## Diagramas y artefactos relacionados
-
-
-
 ## Cambios recientes (2025-11-25)
 Resumen de cambios introducidos en la versión del DDL publicada el 2025-11-25.
 
