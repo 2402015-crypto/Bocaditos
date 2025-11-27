@@ -3,7 +3,7 @@
 -- Sistema: Bocaditos - Sistema de Donaciones Alimentarias
 -- Versión: 2.0.2
 -- Fecha: 2025-11-25
--- Motor: MySQL/MariaDB
+-- Motor: 10.4.32-MariaDB 
 -- ============================================
 
 
@@ -165,20 +165,21 @@ CREATE TABLE detalle_donaciones (
   FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
 );
 
--- TABLA: stocks - Control de inventario por `producto` y `escuela`; entradas y salidas acumuladas.
--- La cantidad disponible se calcula como (cantidad_entrada - cantidad_salida)
+-- TABLA: stocks - Registro de movimientos de inventario por `producto` y `escuela`.
+-- Cada fila representa una entrada ('E') o salida ('S').
 CREATE TABLE stocks (
   id_stock INT AUTO_INCREMENT PRIMARY KEY,
   id_producto INT NOT NULL,
   id_escuela INT NOT NULL,
-  cantidad_entrada INT DEFAULT 0,
-  cantidad_salida INT DEFAULT 0,
-  fecha_entrada DATE,
-  fecha_salida DATE,
+  cantidad INT NOT NULL,
+  fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  tipo ENUM('E','S') NOT NULL,
   FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
-  FOREIGN KEY (id_escuela) REFERENCES escuelas(id_escuela),
-  UNIQUE KEY uniq_producto_escuela (id_producto, id_escuela)
+  FOREIGN KEY (id_escuela) REFERENCES escuelas(id_escuela)
 );
+-- Índices para acelerar consultas por producto/escuela/fecha/tipo
+CREATE INDEX IF NOT EXISTS idx_stocks_producto_escuela_fecha ON stocks (id_producto, id_escuela, fecha);
+CREATE INDEX IF NOT EXISTS idx_stocks_producto_escuela_tipo ON stocks (id_producto, id_escuela, tipo);
 
 -- TABLA: paquetes - Paquetes predefinidos de productos que administra un `administrador`.
 CREATE TABLE paquetes (
@@ -190,15 +191,15 @@ CREATE TABLE paquetes (
   FOREIGN KEY (id_admin) REFERENCES administradores(id_admin)
 );
 
--- Tabla pivote: paquetes_stock
--- TABLA: paquetes_stock - Relación muchos-a-muchos entre `paquetes` y `stocks` con cantidad por item.
-CREATE TABLE paquetes_stock (
-  id_paquete INT,
-  id_stock INT,
-  cantidad INT CHECK (cantidad > 0),
-  PRIMARY KEY (id_paquete, id_stock),
-  FOREIGN KEY (id_paquete) REFERENCES paquetes(id_paquete),
-  FOREIGN KEY (id_stock) REFERENCES stocks(id_stock)
+-- Tabla: detalle_paquete - Contenido detallado de cada paquete (producto + cantidad)
+CREATE TABLE detalle_paquete (
+  id_detalle_paquete INT AUTO_INCREMENT PRIMARY KEY,
+  id_paquete INT NOT NULL,
+  id_producto INT NOT NULL,
+  cantidad INT NOT NULL CHECK (cantidad > 0),
+  FOREIGN KEY (id_paquete) REFERENCES paquetes(id_paquete) ON DELETE CASCADE,
+  FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
+  UNIQUE KEY uniq_paquete_producto (id_paquete, id_producto)
 );
 
 -- TABLA: entregas - Registro de entregas realizadas a alumnos (relaciona paquete y alumno).
@@ -268,16 +269,15 @@ BEGIN
   SELECT id_estado_entrega INTO estado_default FROM estados_entregas WHERE nombre_estado = 'entregada' LIMIT 1;
 
   -- Insertar entrega con estado por defecto (si no existe, se usa id 1 por compatibilidad)
-  INSERT INTO entregas (id_alumno, id_paquete, fecha, id_estado_entrega)
-  VALUES (alumno_id, paquete_id, entrega_fecha, COALESCE(estado_default, 1));
+  INSERT INTO entregas (fecha, id_paquete, id_alumno, id_estado_entrega)
+  VALUES (entrega_fecha, paquete_id, alumno_id, COALESCE(estado_default, 1));
 
-  -- Actualizar stock por cada producto del paquete: aumentamos cantidad_salida
-  UPDATE stocks s
-  JOIN paquetes_stock ps ON s.id_stock = ps.id_stock
-  SET 
-    s.cantidad_salida = s.cantidad_salida + ps.cantidad,
-    s.fecha_salida = entrega_fecha
-  WHERE ps.id_paquete = paquete_id;
+  -- Registrar movimientos de stock como salidas ('S') por cada producto del paquete
+  INSERT INTO stocks (id_producto, id_escuela, cantidad, fecha, tipo)
+  SELECT dp.id_producto, u.id_escuela, dp.cantidad, entrega_fecha, 'S'
+  FROM detalle_paquete dp
+  JOIN usuarios u ON u.id_usuario = alumno_id
+  WHERE dp.id_paquete = paquete_id;
 END$$
 
 DELIMITER ;
@@ -304,12 +304,9 @@ BEGIN
   INSERT INTO detalle_donaciones (id_donacion, id_producto, cantidad)
   VALUES (nueva_donacion_id, producto_id, cantidad);
 
-  -- Actualizar stock
-  INSERT INTO stocks (id_producto, id_escuela, cantidad_entrada, fecha_entrada)
-  VALUES (producto_id, escuela_id, cantidad, CURDATE())
-  ON DUPLICATE KEY UPDATE
-    cantidad_entrada = cantidad_entrada + VALUES(cantidad_entrada),
-    fecha_entrada = CURDATE();
+  -- Actualizar stock: insertar movimiento de entrada ('E') con escuela
+  INSERT INTO stocks (id_producto, id_escuela, cantidad, fecha, tipo)
+  VALUES (producto_id, escuela_id, cantidad, CURDATE(), 'E');
 END$$
 
 DELIMITER ;
@@ -329,28 +326,25 @@ CREATE TABLE IF NOT EXISTS conversaciones (
   estado ENUM('abierta','cerrada') DEFAULT 'abierta'
 );
 
--- Tabla: registro_conversaciones
--- Breve: Participantes de una conversación (usuario o donador) y su rol.
-CREATE TABLE IF NOT EXISTS registro_conversaciones (
-  id_participante INT AUTO_INCREMENT PRIMARY KEY,
-  id_conversacion INT NOT NULL,
-  tipo_participante ENUM('usuario','donador') NOT NULL,
-  id_participante_ref INT NOT NULL,
-  rol ENUM('administrador','donador') NOT NULL,
-  FOREIGN KEY (id_conversacion) REFERENCES conversaciones(id_conversacion) ON DELETE CASCADE
-);
+-- NOTE: La tabla `registro_conversaciones` se elimina: ahora los mensajes referencian directamente a administradores o donadores.
 
 -- Tabla: mensajes
--- Breve: Mensajes de las conversaciones; `sender_type` permite remitente polimórfico.
+-- Breve: Mensajes de las conversaciones; referencian directamente a `administradores` o `donadores`.
 CREATE TABLE IF NOT EXISTS mensajes (
   id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
   id_conversacion INT NOT NULL,
-  sender_type ENUM('usuario','donador') NOT NULL,
-  sender_id INT NOT NULL,
+  id_admin INT NULL,
+  id_donador INT NULL,
   contenido TEXT NOT NULL,
   fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
   leido BOOLEAN DEFAULT FALSE,
-  FOREIGN KEY (id_conversacion) REFERENCES conversaciones(id_conversacion) ON DELETE CASCADE
+  FOREIGN KEY (id_conversacion) REFERENCES conversaciones(id_conversacion) ON DELETE CASCADE,
+  FOREIGN KEY (id_admin) REFERENCES administradores(id_admin),
+  FOREIGN KEY (id_donador) REFERENCES donadores(id_donador),
+  CHECK (
+    (id_admin IS NOT NULL AND id_donador IS NULL) OR
+    (id_admin IS NULL AND id_donador IS NOT NULL)
+  )
 );
 
 CREATE INDEX IF NOT EXISTS idx_mensaje_conversacion_fecha ON mensajes (id_conversacion, fecha_envio);
@@ -371,13 +365,14 @@ DELIMITER ;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Vista: stock disponible calculado
--- Breve: Vista que calcula la cantidad disponible por producto/escuela (no guarda datos).
+-- Breve: Calcula la cantidad disponible por producto sumando entradas y restando salidas.
 CREATE OR REPLACE VIEW vw_stock_disponible AS
 SELECT
   id_producto,
   id_escuela,
-  (IFNULL(cantidad_entrada,0) - IFNULL(cantidad_salida,0)) AS cantidad_disponible
-FROM stocks;
+  COALESCE(SUM(CASE WHEN tipo = 'E' THEN cantidad WHEN tipo = 'S' THEN -cantidad END),0) AS cantidad_disponible
+FROM stocks
+GROUP BY id_producto, id_escuela;
 
 DELIMITER $$
 -- Procedimiento: crear_paquete
@@ -393,16 +388,14 @@ BEGIN
   SELECT LAST_INSERT_ID() AS paquete_id;
 END$$
 
--- Procedimiento: agregar_producto_a_paquete
--- Breve: Añade o incrementa la cantidad de un stock dentro de un paquete.
 CREATE PROCEDURE agregar_producto_a_paquete (
   IN p_paquete_id INT,
-  IN p_stock_id INT,
+  IN p_producto_id INT,
   IN p_cantidad INT
 )
 BEGIN
-  INSERT INTO paquetes_stock (id_paquete, id_stock, cantidad)
-  VALUES (p_paquete_id, p_stock_id, p_cantidad)
+  INSERT INTO detalle_paquete (id_paquete, id_producto, cantidad)
+  VALUES (p_paquete_id, p_producto_id, p_cantidad)
   ON DUPLICATE KEY UPDATE cantidad = cantidad + VALUES(cantidad);
 END$$
 
@@ -419,12 +412,12 @@ BEGIN
   INSERT INTO entregas (fecha, id_paquete, id_alumno, id_estado_entrega)
   VALUES (p_fecha, p_paquete_id, p_alumno_id, COALESCE(estado_entregada,1));
 
-  -- decrementar stocks (sumamos a cantidad_salida)
-  UPDATE stocks s
-  JOIN paquetes_stock ps ON s.id_stock = ps.id_stock
-  SET s.cantidad_salida = s.cantidad_salida + ps.cantidad,
-      s.fecha_salida = p_fecha
-  WHERE ps.id_paquete = p_paquete_id;
+  -- Registrar salidas ('S') por cada producto del paquete (atribuidas a la escuela del alumno)
+  INSERT INTO stocks (id_producto, id_escuela, cantidad, fecha, tipo)
+  SELECT dp.id_producto, u.id_escuela, dp.cantidad, p_fecha, 'S'
+  FROM detalle_paquete dp
+  JOIN usuarios u ON u.id_usuario = p_alumno_id
+  WHERE dp.id_paquete = p_paquete_id;
 END$$
 
 DELIMITER ;
