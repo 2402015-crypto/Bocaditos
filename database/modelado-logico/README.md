@@ -19,11 +19,11 @@ Este documento resume el modelo lógico actual y las decisiones importantes toma
 - `usuarios`, `roles`, `administradores`: gestión de usuarios y permisos.
 - `donadores`: soporta donantes institucionales y representante/contacto.
 - `donaciones`, `detalle_donaciones`: cabecera y líneas de donación.
-- `stocks`: inventario por `id_producto` y `id_escuela` con `cantidad_entrada` y `cantidad_salida`; `UNIQUE(id_producto,id_escuela)`.
-- `vw_stock_disponible`: vista que calcula `cantidad_disponible = cantidad_entrada - cantidad_salida`.
-- `paquetes`, `paquetes_stock`: definición de paquetes y relación pivot para cantidad por stock.
-- `entregas`: registro de entregas a alumnos, con FK a `paquetes` y `estados_entregas`.
-- Mensajería: `conversaciones`, `registro_conversaciones` (participantes polimórficos), `mensajes`.
+ - `stocks`: ahora modela movimientos por fila (registro de entradas 'E' y salidas 'S') y contiene `id_producto`, `id_escuela`, `cantidad`, `fecha` y `tipo` (E/S). La disponibilidad se calcula agregando entradas y restando salidas.
+ - `vw_stock_disponible`: vista que calcula `cantidad_disponible` agregando movimientos por `id_producto` y `id_escuela`.
+ - `paquetes` y `detalle_paquete`: `paquetes` define paquetes y `detalle_paquete` describe el contenido por producto (reemplaza el modelo previo `paquetes_stock`).
+ - `entregas`: registro de entregas a alumnos, con FK a `paquetes` y `estados_entregas`.
+ - Mensajería: `conversaciones` y `mensajes`; la tabla `registro_conversaciones` fue eliminada en favor de referenciar directamente `administradores` o `donadores` en `mensajes`.
 
 ## Reglas de negocio y comportamientos
 

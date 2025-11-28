@@ -154,5 +154,5 @@ Para preguntas o sugerencias:
 
 ---
 
-**Versión de Base de Datos**: 2.0.0  
-**Última Actualización**: 2025-11-20 
+**Versión de Base de Datos**: 2.0.3  
+**Última Actualización**: 2025-11-27 

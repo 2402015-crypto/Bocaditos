@@ -13,7 +13,7 @@ Este documento describe el modelo físico de la base de datos para el sistema de
 
 ## Tablas (resumen actualizado)
 
-Esta sección resume el modelo físico actual tal como está definido en `database/sql/ddl/01_create_schema.sql` (v2.0.1).
+Esta sección resume el modelo físico actual tal como está definido en `database/sql/ddl/01_create_schema.sql` (v2.0.3).
 
 - `tipo_producto` (catálogo): `id_tipo_producto` (PK), `nombre_tipo` (ENUM).
 - `producto`: `id_producto` (PK), `nombre`, `fecha_caducidad`, `id_tipo_producto` (FK).
@@ -29,9 +29,9 @@ Esta sección resume el modelo físico actual tal como está definido en `databa
 - `donador`: `id_donador` (PK), `nombre`, `rfc` (UNIQUE), `razon_social`, `telefono`, `correo`, `contrasena`, `id_ubicacion` (FK).
 - `donacion`: `id_donacion` (PK), `id_donador` (FK), `id_escuela` (FK), `fecha_donacion`, `id_estado_donacion` (FK).
 - `detalle_donacion`: `id_detalle_donacion` (PK), `id_donacion` (FK), `id_producto` (FK), `cantidad` (CHECK > 0).
--- `stocks`: `id_stock` (PK), `id_producto` (FK), `id_escuela` (FK), `cantidad_entrada`, `cantidad_salida`, fechas (entrada/salida). La columna `cantidad_disponible` fue removida y se calcula mediante la vista `vw_stock_disponible` (cantidad_entrada - cantidad_salida). Se creó un índice UNIQUE `(id_producto,id_escuela)` para soportar `INSERT ... ON DUPLICATE KEY UPDATE`.
+- `stocks`: ahora es un registro de movimientos por fila: `id_stock` (PK), `id_producto` (FK), `id_escuela` (FK), `cantidad`, `fecha` y `tipo` ENUM('E','S'). La disponibilidad se obtiene agregando movimientos en `vw_stock_disponible`.
 - `paquete`: `id_paquete` (PK), `nombre`, `descripcion`, `fecha_creacion`, `id_admin` (FK).
-- `paquete_stock`: pivote (`id_paquete`, `id_stock`) PK compuesta, `cantidad`.
+- `detalle_paquete`: reemplaza al antiguo pivote `paquete_stock`. Guarda `id_paquete`, `id_producto` y `cantidad` por paquete.
 - `entrega`: `id_entrega` (PK), `fecha`, `id_paquete` (FK), `id_alumno` (FK->usuario).
 - `alergia`: `id_alergia` (PK), `descripcion_alergia`.
 - `usuario_alergia`: pivote (`id_usuario`, `id_alergia`) PK compuesta.
