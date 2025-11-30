@@ -22,7 +22,7 @@ Este documento resume el modelo lógico actual y las decisiones importantes toma
  - `stocks`: ahora modela movimientos por fila (registro de entradas 'E' y salidas 'S') y contiene `id_producto`, `id_escuela`, `cantidad`, `fecha` y `tipo` (E/S). La disponibilidad se calcula agregando entradas y restando salidas.
  - `vw_stock_disponible`: vista que calcula `cantidad_disponible` agregando movimientos por `id_producto` y `id_escuela`.
  - `paquetes` y `detalle_paquete`: `paquetes` define paquetes y `detalle_paquete` describe el contenido por producto (reemplaza el modelo previo `paquetes_stock`).
- - `entregas`: registro de entregas a alumnos, con FK a `paquetes` y `estados_entregas`.
+ - `entregas`: registro de entregas a beneficiarios, con FK a `paquetes` y `estados_entregas`.
  - Mensajería: `conversaciones` y `mensajes`; la tabla `registro_conversaciones` fue eliminada en favor de referenciar directamente `administradores` o `donadores` en `mensajes`.
 
 ## Reglas de negocio y comportamientos
@@ -52,7 +52,7 @@ Este documento resume el modelo lógico actual y las decisiones importantes toma
 - Donador 1:N Donacion
 - Donacion 1:N Detalle_donacion
 - Donacion N:1 Escuela (cada donación tiene una escuela destino)
-- Escuela 1:N Usuario (alumnos y administradores)
+ - Escuela 1:N Usuario (beneficiarios y administradores)
 - Usuario (administrador) 1:1 Administrador (tabla administrativa con fecha de asignación)
 - Producto 1:N Detalle_donacion
 - Producto N:1 Stock (por escuela)

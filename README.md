@@ -9,7 +9,7 @@ Este repositorio contiene el modelado lógico y físico, archivos SQL y versione
 - Gestionar entregas a la escuela
 - Administrar información de administradores
 - Controlar inventario de alimentos con fechas de caducidad
-- Registrar alumnos beneficiarios
+ - Registrar beneficiarios
 - Generar reportes y estadísticas del programa de donaciones
 
 **Motor de Base de Datos**: MySQL/MariaDB
@@ -103,15 +103,15 @@ El sistema gestiona las siguientes entidades principales (esquema actualizado):
  - **estados_donaciones**: Catálogo de estados de donación (pendiente, entregada, cancelada).
  - **escuelas**: Instituciones beneficiarias (referencia a `ubicaciones`).
 - **ubicacion / ciudad / estado**: Jerarquía de localización geográfica.
- - **usuarios**: Usuarios del sistema (alumnos y administradores) con rol, escuela y contacto.
- - **roles**: Tipos de usuario (`alumno`, `administrador`).
+ - **usuarios**: Usuarios del sistema (beneficiarios y administradores) con rol, escuela y contacto.
+ - **roles**: Tipos de usuario (`beneficiario`, `administrador`).
  - **administradores**: Tabla que vincula un `usuario` con rol de administrador y fecha de asignación.
  - **stocks**: Control de existencias por `productos` y `escuelas` (entradas, salidas, disponible, fechas).
  - **paquetes**: Paquetes predefinidos compuestos por `stocks` (tabla pivote `paquetes_stock`).
  - **paquetes_stock**: Asociación muchos-a-muchos entre `paquete` y `stocks` indicando cantidades por paquete.
- - **entregas**: Registro de entregas de paquetes a alumnos.
+ - **entregas**: Registro de entregas de paquetes a beneficiarios.
  - **alergias / usuarios_alergias**: Catálogo de alergias y relación con usuarios.
- - **comentarios_alumnos**: Comentarios/sugerencias enviados por alumnos.
+ - **comentarios_beneficiarios**: Comentarios/sugerencias enviados por beneficiarios.
  - **conversaciones / conversacion_participantes / mensajes**: Sistema de mensajería entre administradores (usuarios) y donadores (conversaciones, participantes y mensajes).
 
 Adicionalmente hay triggers y procedimientos para validaciones y operaciones frecuentes, por ejemplo:

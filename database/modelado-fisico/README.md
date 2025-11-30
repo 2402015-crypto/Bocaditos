@@ -22,9 +22,9 @@ Esta sección resume el modelo físico actual tal como está definido en `databa
 - `ciudad`: `id_ciudad` (PK), `nombre_ciudad`, `id_estado` (FK).
 - `ubicacion`: `id_ubicacion` (PK), `direccion`, `codigo_postal`, `id_ciudad` (FK).
 - `escuela`: `id_escuela` (PK), `nombre`, `id_ubicacion` (FK).
-- `rol`: `id_rol` (PK), `nombre_rol` (ENUM: 'alumno','administrador').
+-- `rol`: `id_rol` (PK), `nombre_rol` (ENUM: 'beneficiario','administrador').
 - `usuario`: `id_usuario` (PK), `nombre`, `apellido`, `telefono`, `matricula`, `cuatrimestre`, `correo` (UNIQUE), `contrasena`, `id_rol` (FK), `id_escuela` (FK), `id_ubicacion` (FK).
-- `comentario_alumno`: `id_comentario` (PK), `id_alumno` (FK->usuario), `contenido`, `fecha_envio`.
+- `comentario_beneficiario`: `id_comentario` (PK), `id_beneficiario` (FK->usuario), `contenido`, `fecha_envio`.
 - `administrador`: `id_admin` (PK), `id_usuario` (FK UNIQUE), `fecha_asignacion`.
 - `donador`: `id_donador` (PK), `nombre`, `rfc` (UNIQUE), `razon_social`, `telefono`, `correo`, `contrasena`, `id_ubicacion` (FK).
 - `donacion`: `id_donacion` (PK), `id_donador` (FK), `id_escuela` (FK), `fecha_donacion`, `id_estado_donacion` (FK).
@@ -32,7 +32,7 @@ Esta sección resume el modelo físico actual tal como está definido en `databa
 - `stocks`: ahora es un registro de movimientos por fila: `id_stock` (PK), `id_producto` (FK), `id_escuela` (FK), `cantidad`, `fecha` y `tipo` ENUM('E','S'). La disponibilidad se obtiene agregando movimientos en `vw_stock_disponible`.
 - `paquete`: `id_paquete` (PK), `nombre`, `descripcion`, `fecha_creacion`, `id_admin` (FK).
 - `detalle_paquete`: reemplaza al antiguo pivote `paquete_stock`. Guarda `id_paquete`, `id_producto` y `cantidad` por paquete.
-- `entrega`: `id_entrega` (PK), `fecha`, `id_paquete` (FK), `id_alumno` (FK->usuario).
+- `entrega`: `id_entrega` (PK), `fecha`, `id_paquete` (FK), `id_beneficiario` (FK->usuario).
 - `alergia`: `id_alergia` (PK), `descripcion_alergia`.
 - `usuario_alergia`: pivote (`id_usuario`, `id_alergia`) PK compuesta.
 - Mensajería:
@@ -48,7 +48,7 @@ Esta sección resume el modelo físico actual tal como está definido en `databa
 - Mensajería:
     - `trg_update_fecha_ultimo_mensaje` (AFTER INSERT ON `mensaje`): actualiza `conversacion.fecha_ultimo_mensaje`.
 - Procedimientos almacenados:
-    - `registrar_entrega(alumno_id, paquete_id, entrega_fecha)`: inserta en `entrega` y actualiza `stock` según `paquete_stock`.
+    - `registrar_entrega(beneficiario_id, paquete_id, entrega_fecha)`: inserta en `entrega` y actualiza `stock` según `paquete_stock`.
     - `registrar_donacion(donador_id, escuela_id, estado_id, producto_id, cantidad)`: inserta `donacion`, `detalle_donacion` y actualiza `stock` con `ON DUPLICATE KEY UPDATE`.
 
 
@@ -73,13 +73,13 @@ Esta sección resume el modelo físico actual tal como está definido en `databa
 - **Claves Primarias**: AUTO_INCREMENT con índice automático
 - **Claves Foráneas**: Índices en todas las FKs para optimizar JOINs
 - **Campos de Búsqueda**: Índices en campos frecuentemente consultados (nombres, correos, fechas)
-- **Campos Únicos**: Índice UNIQUE en matrícula de alumnos
+-- **Campos Únicos**: Índice UNIQUE en matrícula de beneficiarios
 
 ### Restricciones de Integridad
 - **ON DELETE RESTRICT**: Evita eliminación de registros con dependencias
 - **ON UPDATE RESTRICT**: Evita actualización de PKs referenciadas
 - **CHECK Constraints**: Validación de cantidades positivas y estados válidos
-- **UNIQUE Constraints**: Matrícula única por alumno
+-- **UNIQUE Constraints**: Matrícula única por beneficiario
 
 ## Características MySQL/MariaDB
 

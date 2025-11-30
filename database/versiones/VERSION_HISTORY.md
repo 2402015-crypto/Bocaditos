@@ -19,7 +19,7 @@ Primera versión del esquema de base de datos para el sistema de donaciones alim
 1. **donadores** - Información de donadores (personas o instituciones)
 2. **donaciones** - Registro de donaciones con cantidad y destino
 3. **administradores** - Personal que gestiona entregas en la escuela
-4. **alumnos** - Estudiantes beneficiarios del programa
+4. **beneficiarios** - Estudiantes beneficiarios del programa
 5. **productos** - Catálogo de alimentos donados con fechas de caducidad
 6. **entregas** - Registro de entregas de donaciones
 7. **escuelas** - Datos de la escuela.

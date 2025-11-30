@@ -81,13 +81,13 @@ CREATE TABLE escuelas (
   FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
--- TABLA: roles - Roles de usuario (alumno o administrador).
+-- TABLA: roles - Roles de usuario (beneficiario o administrador).
 CREATE TABLE roles (
   id_rol INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_rol ENUM('alumno','administrador') NOT NULL
+    nombre_rol ENUM('beneficiario','administrador') NOT NULL
 );
 
--- TABLA: usuarios - Usuarios del sistema (alumnos); credenciales y referencias a rol/escuela.
+-- TABLA: usuarios - Usuarios del sistema (beneficiarios); credenciales y referencias a rol/escuela.
 CREATE TABLE usuarios (
   id_usuario INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -105,13 +105,13 @@ CREATE TABLE usuarios (
   FOREIGN KEY (id_ubicacion) REFERENCES ubicaciones(id_ubicacion)
 );
 
--- TABLA: comentarios_alumnos - Comentarios hechos por alumnos; FK a `usuarios`.
-CREATE TABLE comentarios_alumnos (
+-- TABLA: comentarios_beneficiarios - Comentarios hechos por beneficiarios; FK a `usuarios`.
+CREATE TABLE comentarios_beneficiarios (
   id_comentario INT AUTO_INCREMENT PRIMARY KEY,
-  id_alumno INT NOT NULL,
+  id_beneficiario INT NOT NULL,
   contenido TEXT NOT NULL,
   fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario)
+  FOREIGN KEY (id_beneficiario) REFERENCES usuarios(id_usuario)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
@@ -202,15 +202,15 @@ CREATE TABLE detalle_paquete (
   UNIQUE KEY uniq_paquete_producto (id_paquete, id_producto)
 );
 
--- TABLA: entregas - Registro de entregas realizadas a alumnos (relaciona paquete y alumno).
+-- TABLA: entregas - Registro de entregas realizadas a beneficiarios (relaciona paquete y beneficiario).
 CREATE TABLE entregas (
   id_entrega INT AUTO_INCREMENT PRIMARY KEY,
   fecha DATE NOT NULL,
   id_paquete INT NOT NULL,
-  id_alumno INT NOT NULL,
+  id_beneficiario INT NOT NULL,
   id_estado_entrega INT NOT NULL,
   FOREIGN KEY (id_paquete) REFERENCES paquetes(id_paquete),
-  FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_beneficiario) REFERENCES usuarios(id_usuario),
   FOREIGN KEY (id_estado_entrega) REFERENCES estados_entregas(id_estado_entrega)
 );
 
@@ -259,7 +259,7 @@ DELIMITER ;
 DELIMITER $$
 
 CREATE PROCEDURE registrar_entrega (
-  IN alumno_id INT,
+  IN beneficiario_id INT,
   IN paquete_id INT,
   IN entrega_fecha DATE
 )
@@ -269,14 +269,14 @@ BEGIN
   SELECT id_estado_entrega INTO estado_default FROM estados_entregas WHERE nombre_estado = 'entregada' LIMIT 1;
 
   -- Insertar entrega con estado por defecto (si no existe, se usa id 1 por compatibilidad)
-  INSERT INTO entregas (fecha, id_paquete, id_alumno, id_estado_entrega)
-  VALUES (entrega_fecha, paquete_id, alumno_id, COALESCE(estado_default, 1));
+  INSERT INTO entregas (fecha, id_paquete, id_beneficiario, id_estado_entrega)
+  VALUES (entrega_fecha, paquete_id, beneficiario_id, COALESCE(estado_default, 1));
 
   -- Registrar movimientos de stock como salidas ('S') por cada producto del paquete
   INSERT INTO stocks (id_producto, id_escuela, cantidad, fecha, tipo)
   SELECT dp.id_producto, u.id_escuela, dp.cantidad, entrega_fecha, 'S'
   FROM detalle_paquete dp
-  JOIN usuarios u ON u.id_usuario = alumno_id
+  JOIN usuarios u ON u.id_usuario = beneficiario_id
   WHERE dp.id_paquete = paquete_id;
 END$$
 
@@ -399,9 +399,9 @@ BEGIN
   ON DUPLICATE KEY UPDATE cantidad = cantidad + VALUES(cantidad);
 END$$
 
--- PROCEDIMIENTO: entregar_paquete - Registra la entrega de un paquete a un alumno y ajusta stocks (aumentando salidas).
+-- PROCEDIMIENTO: entregar_paquete - Registra la entrega de un paquete a un beneficiario y ajusta stocks (aumentando salidas).
 CREATE PROCEDURE entregar_paquete (
-  IN p_alumno_id INT,
+  IN p_beneficiario_id INT,
   IN p_paquete_id INT,
   IN p_fecha DATE
 )
@@ -409,14 +409,14 @@ BEGIN
   DECLARE estado_entregada INT;
   SELECT id_estado_entrega INTO estado_entregada FROM estados_entregas WHERE nombre_estado = 'entregada' LIMIT 1;
 
-  INSERT INTO entregas (fecha, id_paquete, id_alumno, id_estado_entrega)
-  VALUES (p_fecha, p_paquete_id, p_alumno_id, COALESCE(estado_entregada,1));
+  INSERT INTO entregas (fecha, id_paquete, id_beneficiario, id_estado_entrega)
+  VALUES (p_fecha, p_paquete_id, p_beneficiario_id, COALESCE(estado_entregada,1));
 
-  -- Registrar salidas ('S') por cada producto del paquete (atribuidas a la escuela del alumno)
+  -- Registrar salidas ('S') por cada producto del paquete (atribuidas a la escuela del beneficiario)
   INSERT INTO stocks (id_producto, id_escuela, cantidad, fecha, tipo)
   SELECT dp.id_producto, u.id_escuela, dp.cantidad, p_fecha, 'S'
   FROM detalle_paquete dp
-  JOIN usuarios u ON u.id_usuario = p_alumno_id
+  JOIN usuarios u ON u.id_usuario = p_beneficiario_id
   WHERE dp.id_paquete = p_paquete_id;
 END$$
 
